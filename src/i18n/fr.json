@@ -55,7 +55,11 @@
     "nextHit": "Résultat suivant",
     "prevHit": "Résultat précédent",
     "bookmarks": "Signets",
-    "noBookmarks": "Ce fichier n’a pas de signets."
+    "noBookmarks": "Ce fichier n’a pas de signets.",
+    "hitGroup_one": "Page {{n}} · {{count}} résultat",
+    "hitGroup_other": "Page {{n}} · {{count}} résultats",
+    "hitItem": "Résultat {{n}}",
+    "toggleBookmark": "Développer ou réduire « {{title}} »"
   },
   "password": {
     "title": "Mot de passe requis",

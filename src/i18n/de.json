@@ -55,7 +55,11 @@
     "nextHit": "Nächster Treffer",
     "prevHit": "Voriger Treffer",
     "bookmarks": "Lesezeichen",
-    "noBookmarks": "Diese Datei hat keine Lesezeichen."
+    "noBookmarks": "Diese Datei hat keine Lesezeichen.",
+    "hitGroup_one": "Seite {{n}} · {{count}} Treffer",
+    "hitGroup_other": "Seite {{n}} · {{count}} Treffer",
+    "hitItem": "Treffer {{n}}",
+    "toggleBookmark": "„{{title}}“ auf- oder zuklappen"
   },
   "password": {
     "title": "Passwort erforderlich",

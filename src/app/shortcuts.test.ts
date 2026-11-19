@@ -36,3 +36,23 @@ test("keys without a modifier are left to text fields", () => {
   expect(matched).toBeNull();
   input.remove();
 });
+
+test("F3, Shift+F3 and Escape step through search hits and clear the search", () => {
+  expect(matchShortcut(key({ key: "F3" }), false)).toBe("nextHit");
+  expect(matchShortcut(key({ key: "F3", shiftKey: true }), false)).toBe("prevHit");
+  expect(matchShortcut(key({ key: "Escape" }), false)).toBe("clearSearch");
+  expect(matchShortcut(key({ key: "F3", ctrlKey: true }), false)).toBeNull();
+  expect(matchShortcut(key({ key: "f", ctrlKey: true }), false)).toBe("focusSearch");
+});
+
+test("F3 and Escape also work while typing in a text field", () => {
+  const input = document.createElement("input");
+  document.body.append(input);
+  const matched: unknown[] = [];
+  input.addEventListener("keydown", (e) => matched.push(matchShortcut(e, false)));
+  input.dispatchEvent(key({ key: "F3", bubbles: true }));
+  input.dispatchEvent(key({ key: "Escape", bubbles: true }));
+  input.dispatchEvent(key({ key: "End", bubbles: true }));
+  expect(matched).toEqual(["nextHit", "clearSearch", null]);
+  input.remove();
+});

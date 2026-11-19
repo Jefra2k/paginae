@@ -10,6 +10,7 @@ import { useBackend } from "./backend/BackendContext";
 import { PasswordDialog } from "./dialogs/PasswordDialog";
 import { errorText } from "./i18n/errorText";
 import { ReaderToolPane } from "./reader/ReaderToolPane";
+import { useSearch } from "./reader/useSearch";
 import { DocumentsProvider, nextZoom, useDocuments } from "./state/documents";
 import { DocumentView, ViewerContext, type DocumentViewHandle } from "./viewer/DocumentView";
 import { createRenderCaches, RenderCachesContext } from "./viewer/RenderCache";
@@ -23,6 +24,7 @@ function Workbench() {
   const [caches] = useState(() => createRenderCaches(backend));
   const viewRef = useRef<DocumentViewHandle>(null);
   const [fitPercent, setFitPercent] = useState<number | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(
     () => () => {
@@ -39,6 +41,8 @@ function Workbench() {
     }),
     [],
   );
+
+  const search = useSearch(active?.info.id ?? null, viewer.scrollToPage);
 
   const closeDocument = useCallback(
     (id: number) => {
@@ -97,12 +101,26 @@ function Workbench() {
           return true;
         }
         case "focusSearch":
+          searchInputRef.current?.focus();
+          searchInputRef.current?.select();
+          return true;
+        case "nextHit":
+          search.next();
+          return true;
+        case "prevHit":
+          search.prev();
+          return true;
+        case "clearSearch":
+          // Without a search Esc is left alone (a dialog or the webview may want it).
+          if (search.query === "" && search.hits.length === 0) return false;
+          search.clear();
+          return true;
         case "print":
-          // Search arrives in Task 7, printing in Task 8; until then the webview must not act on them either.
+          // Printing arrives in Task 8; until then the webview must not act on it either.
           return true;
       }
     },
-    [active, closeDocument, dispatch, files, state.order, viewer],
+    [active, closeDocument, dispatch, files, search, state.order, viewer],
   );
 
   const passwordOpen = files.password !== null;
@@ -149,7 +167,14 @@ function Workbench() {
               {active ? (
                 <>
                   <Banners key={`banners-${active.info.id}`} doc={active} />
-                  <DocumentView key={active.info.id} ref={viewRef} doc={active} onPercentChange={setFitPercent} />
+                  <DocumentView
+                    key={active.info.id}
+                    ref={viewRef}
+                    doc={active}
+                    onPercentChange={setFitPercent}
+                    hits={search.hits}
+                    currentHit={search.current}
+                  />
                 </>
               ) : (
                 <StartScreen
@@ -160,7 +185,11 @@ function Workbench() {
               )}
             </>
           }
-          right={active ? <ReaderToolPane doc={active} fitPercent={fitPercent} /> : null}
+          right={
+            active ? (
+              <ReaderToolPane doc={active} fitPercent={fitPercent} search={search} searchInputRef={searchInputRef} />
+            ) : null
+          }
         />
         {files.password && (
           <PasswordDialog

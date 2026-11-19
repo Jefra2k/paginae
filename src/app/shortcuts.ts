@@ -10,6 +10,9 @@ export type ShortcutAction =
   | "firstPage"
   | "lastPage"
   | "focusSearch"
+  | "nextHit"
+  | "prevHit"
+  | "clearSearch"
   | "print"
   | "nextTab";
 
@@ -26,6 +29,9 @@ export const SHORTCUTS: Record<string, ShortcutAction> = {
   Home: "firstPage",
   End: "lastPage",
   "Ctrl+F": "focusSearch",
+  F3: "nextHit",
+  "Shift+F3": "prevHit",
+  Escape: "clearSearch",
   "Ctrl+P": "print",
   "Ctrl+Tab": "nextTab",
 };
@@ -54,8 +60,10 @@ export function matchShortcut(e: KeyboardEvent, isMac = IS_MAC): ShortcutAction 
   // The digit row by position: on AZERTY Ctrl+0 is "à" (and "0" needs Shift).
   if (command && e.code === "Digit0") return "fitWidth";
   if (command && e.code === "Digit1") return "fitPage";
-  // Shift only counts where a symbol needs it (Ctrl+Shift+= on some layouts).
-  if (e.shiftKey && key !== "=") return null;
-  if (!command && isTextField(e.target)) return null; // Home, End and paging belong to the text field
-  return SHORTCUTS[command ? `Ctrl+${key}` : key] ?? null;
+  // Shift only counts where a symbol needs it (Ctrl+Shift+= on some layouts) and for Shift+F3.
+  if (e.shiftKey && key !== "=" && key !== "F3") return null;
+  // Home, End and paging belong to a text field; F3 and Escape work there too (the search field is one).
+  if (!command && isTextField(e.target) && key !== "F3" && key !== "Escape") return null;
+  if (command) return SHORTCUTS[`Ctrl+${key}`] ?? null;
+  return SHORTCUTS[e.shiftKey ? `Shift+${key}` : key] ?? null;
 }

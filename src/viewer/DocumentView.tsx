@@ -9,8 +9,10 @@ import {
   useState,
   type Ref,
 } from "react";
+import type { SearchHit } from "../backend/types";
 import { nextZoom, useDocuments, type DocState } from "../state/documents";
 import { cssPageWidth, effectivePercent } from "./geometry";
+import { HitOverlay } from "./HitOverlay";
 import { PageImage } from "./PageImage";
 import { useRenderCaches } from "./RenderCache";
 
@@ -49,11 +51,16 @@ export function DocumentView({
   doc,
   ref,
   onPercentChange,
+  hits = [],
+  currentHit = 0,
 }: {
   doc: DocState;
   ref?: Ref<DocumentViewHandle>;
   /** Reports the effective zoom percent of the current page whenever it changes. */
   onPercentChange?: (percent: number) => void;
+  /** Search hits to highlight, and the index of the current one. */
+  hits?: SearchHit[];
+  currentHit?: number;
 }) {
   const { dispatch } = useDocuments();
   const { pages: cache } = useRenderCaches();
@@ -110,7 +117,10 @@ export function DocumentView({
     dispatch({ type: "pageChanged", id: d.info.id, page: target });
   };
 
-  useImperativeHandle(ref, () => ({ scrollToPage, effectivePercent: percentNow }));
+  useImperativeHandle(ref, () => ({
+    scrollToPage,
+    effectivePercent: percentNow,
+  }));
 
   const currentWidth = layout.widths[doc.currentPage] ?? 0;
   const currentPageInfo = info.pages[doc.currentPage];
@@ -168,7 +178,11 @@ export function DocumentView({
       const direction = accumulated < 0 ? 1 : -1;
       accumulated = 0;
       const d = latest.current.doc;
-      dispatch({ type: "zoomed", id: d.info.id, zoom: nextZoom(d.zoom, direction, percentNow()) });
+      dispatch({
+        type: "zoomed",
+        id: d.info.id,
+        zoom: nextZoom(d.zoom, direction, percentNow()),
+      });
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
@@ -185,7 +199,11 @@ export function DocumentView({
     >
       <div className="document-pages" style={{ padding: `${PADDING}px`, gap: `${GAP}px` }}>
         {info.pages.map((page, i) => (
-          <PageImage key={page.index} docId={id} page={page} cssWidth={layout.widths[i]} cache={cache} />
+          <PageImage key={page.index} docId={id} page={page} cssWidth={layout.widths[i]} cache={cache}>
+            {hits.length > 0 && (
+              <HitOverlay hits={hits} page={page} cssWidth={layout.widths[i]} currentKey={String(currentHit)} />
+            )}
+          </PageImage>
         ))}
       </div>
     </div>

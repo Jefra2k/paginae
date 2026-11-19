@@ -1,16 +1,46 @@
 import { ChevronDown, ChevronUp, Maximize, MoveHorizontal, ZoomIn, ZoomOut } from "lucide-react";
+import { useEffect, useState, type Ref } from "react";
 import { useTranslation } from "react-i18next";
+import { useBackend } from "../backend/BackendContext";
+import type { Bookmark } from "../backend/types";
 import { nextZoom, useDocuments, type DocState, type ZoomMode } from "../state/documents";
 import { useViewer } from "../viewer/DocumentView";
+import { BookmarksPanel } from "./BookmarksPanel";
+import { SearchPanel } from "./SearchPanel";
+import type { SearchApi } from "./useSearch";
 
-/** Tools of the reading mode. This stage: zoom and page navigation; search and bookmarks follow. */
-export function ReaderToolPane({ doc, fitPercent = null }: { doc: DocState; fitPercent?: number | null }) {
+/** Tools of the reading mode: zoom and page navigation, search, bookmarks (printing follows). */
+export function ReaderToolPane({
+  doc,
+  fitPercent = null,
+  search,
+  searchInputRef,
+}: {
+  doc: DocState;
+  fitPercent?: number | null;
+  search: SearchApi;
+  searchInputRef?: Ref<HTMLInputElement>;
+}) {
   const { t } = useTranslation();
+  const backend = useBackend();
   const { dispatch } = useDocuments();
   const viewer = useViewer();
   const { info, zoom, currentPage } = doc;
   const setZoom = (next: ZoomMode) => dispatch({ type: "zoomed", id: info.id, zoom: next });
   const percent = zoom.kind === "percent" ? zoom.value : fitPercent === null ? null : Math.round(fitPercent);
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const docId = info.id;
+  useEffect(() => {
+    let current = true;
+    setBookmarks([]);
+    backend.bookmarks(docId).then(
+      (loaded) => current && setBookmarks(loaded),
+      () => {}, // no outline is shown as "no bookmarks"
+    );
+    return () => {
+      current = false;
+    };
+  }, [backend, docId]);
   const step = (direction: 1 | -1) => setZoom(nextZoom(zoom, direction, viewer.effectivePercent()));
 
   return (
@@ -87,6 +117,14 @@ export function ReaderToolPane({ doc, fitPercent = null }: { doc: DocState; fitP
             <ChevronDown size={18} aria-hidden="true" />
           </button>
         </div>
+      </section>
+      <section className="tool-section" aria-labelledby="reader-search-title">
+        <h2 id="reader-search-title">{t("reader.search")}</h2>
+        <SearchPanel doc={doc} search={search} inputRef={searchInputRef} />
+      </section>
+      <section className="tool-section" aria-labelledby="reader-bookmarks-title">
+        <h2 id="reader-bookmarks-title">{t("reader.bookmarks")}</h2>
+        <BookmarksPanel bookmarks={bookmarks} onGo={(page) => viewer.scrollToPage(page)} />
       </section>
     </div>
   );
