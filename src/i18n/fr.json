@@ -1,0 +1,83 @@
+{
+  "app": { "title": "Paginae" },
+  "modes": {
+    "read": "Lecture",
+    "comment": "Commenter",
+    "fill": "Remplir",
+    "pages": "Pages",
+    "tools": "Outils",
+    "comingSoon": "Disponible dans une étape ultérieure"
+  },
+  "actions": {
+    "open": "Ouvrir un PDF",
+    "close": "Fermer",
+    "print": "Imprimer",
+    "undo": "Annuler",
+    "redo": "Rétablir",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "ok": "OK",
+    "help": "Aide",
+    "collapseLeft": "Masquer l’aperçu des pages",
+    "expandLeft": "Afficher l’aperçu des pages",
+    "collapseRight": "Masquer le panneau d’outils",
+    "expandRight": "Afficher le panneau d’outils"
+  },
+  "tabs": { "newTab": "Ouvrir un autre fichier", "closeTab": "Fermer {{name}}" },
+  "start": {
+    "headline": "Ouvrir un fichier PDF",
+    "hint": "Glisser le fichier ici ou l’ouvrir.",
+    "recent": "Ouverts récemment",
+    "noRecent": "Aucun fichier ouvert pour l’instant."
+  },
+  "thumbnails": {
+    "title": "Pages",
+    "page": "Page {{n}}",
+    "dropHint": "Glisser un fichier ici = ajouter des pages (à partir de l’étape 2)"
+  },
+  "reader": {
+    "zoom": "Zoom",
+    "fitWidth": "Largeur de page",
+    "fitPage": "Page entière",
+    "zoomIn": "Agrandir",
+    "zoomOut": "Réduire",
+    "pageOf": "Page {{n}} sur {{total}}",
+    "prevPage": "Page précédente",
+    "nextPage": "Page suivante",
+    "search": "Rechercher",
+    "searchPlaceholder": "Rechercher dans le document",
+    "hits_one": "{{count}} résultat",
+    "hits_other": "{{count}} résultats",
+    "noHits": "Aucun résultat.",
+    "noText": "Ce fichier ne contient pas de texte consultable. La reconnaissance de texte suivra à l’étape 2.",
+    "nextHit": "Résultat suivant",
+    "prevHit": "Résultat précédent",
+    "bookmarks": "Signets",
+    "noBookmarks": "Ce fichier n’a pas de signets."
+  },
+  "password": {
+    "title": "Mot de passe requis",
+    "text": "« {{name}} » est protégé par un mot de passe.",
+    "label": "Mot de passe",
+    "wrong": "Le mot de passe est incorrect. Veuillez réessayer.",
+    "open": "Ouvrir"
+  },
+  "banners": {
+    "xfa": "Ce formulaire est un formulaire XFA. Paginae peut l’afficher, mais pas le remplir ; pour cela, veuillez utiliser Acrobat Reader.",
+    "noPrint": "L’auteur de ce fichier a bloqué l’impression."
+  },
+  "errors": {
+    "io": "Le fichier n’a pas pu être lu.",
+    "invalid_format": "Ce n’est pas un fichier PDF lisible.",
+    "engine_load": "Le moteur PDF n’a pas pu être chargé. Veuillez réinstaller Paginae.",
+    "unknown_document": "Ce document n’est plus ouvert.",
+    "page_out_of_range": "Cette page n’existe pas.",
+    "engine": "Une erreur est survenue lors du traitement du fichier PDF.",
+    "unknown": "Erreur inattendue : {{message}}"
+  },
+  "print": {
+    "title": "Aperçu avant impression",
+    "preparing": "Préparation des pages ({{done}} sur {{total}})…",
+    "ready": "La boîte de dialogue d’impression s’ouvre."
+  }
+}

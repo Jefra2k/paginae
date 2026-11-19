@@ -1,0 +1,260 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 14px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+/* Workbench layout A */
+.app-shell {
+  --thumbs-column: var(--thumbs-width);
+  --tools-column: var(--tools-width);
+  display: grid;
+  grid-template-rows: var(--tabs-height) var(--modes-height) 1fr;
+  grid-template-columns: var(--thumbs-column) 1fr var(--tools-column);
+  grid-template-areas:
+    "tabs tabs tabs"
+    "modes modes modes"
+    "thumbs center tools";
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-shell[data-left-collapsed="true"] {
+  --thumbs-column: 0px;
+}
+
+.app-shell[data-right-collapsed="true"] {
+  --tools-column: 0px;
+}
+
+.app-shell-tabs {
+  grid-area: tabs;
+  border-bottom: 1px solid var(--line);
+}
+
+.app-shell-modes {
+  grid-area: modes;
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
+.app-shell-center {
+  grid-area: center;
+  overflow: auto;
+  min-width: 0;
+  padding: 16px 40px;
+}
+
+/* Tabs */
+.tabs-bar {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  padding: 0 8px;
+  gap: 2px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  max-width: 220px;
+  margin-top: 6px;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: var(--radius) var(--radius) 0 0;
+  color: var(--muted);
+}
+
+.tab[data-active="true"] {
+  background: var(--paper);
+  border-color: var(--line);
+  color: var(--ink);
+}
+
+.tab-label {
+  overflow: hidden;
+  padding: 0 4px 0 10px;
+  border: none;
+  background: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tab-close,
+.tab-new {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.tab-close {
+  width: 22px;
+  height: 22px;
+  margin-right: 4px;
+}
+
+.tab-new {
+  width: 28px;
+  align-self: center;
+  height: 28px;
+}
+
+.tab-close:hover,
+.tab-new:hover {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+/* Modes */
+.modes-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 8px;
+}
+
+.modes {
+  display: flex;
+  gap: 4px;
+}
+
+.mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: none;
+  cursor: pointer;
+}
+
+.mode[aria-pressed="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.mode[aria-disabled="true"] {
+  color: var(--muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.modes-end {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.save-state {
+  min-width: 120px;
+  color: var(--muted);
+  text-align: right;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius);
+  background: none;
+  cursor: pointer;
+}
+
+.icon-button:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+.icon-button:disabled {
+  color: var(--muted);
+  cursor: default;
+  opacity: 0.5;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Side panes */
+.side-pane {
+  position: relative;
+  min-width: 0;
+  background: var(--paper);
+}
+
+.side-pane-left {
+  grid-area: thumbs;
+  border-right: 1px solid var(--line);
+}
+
+.side-pane-right {
+  grid-area: tools;
+  border-left: 1px solid var(--line);
+}
+
+.side-pane[data-collapsed="true"] {
+  border: none;
+}
+
+.side-pane-content {
+  height: 100%;
+  overflow: auto;
+  padding: 44px 8px 8px;
+}
+
+.pane-toggle {
+  position: absolute;
+  top: 6px;
+  z-index: 1;
+}
+
+.side-pane-left .pane-toggle {
+  right: 6px;
+}
+
+.side-pane-right .pane-toggle {
+  left: 6px;
+}
+
+/* Collapsed: the column is 0 wide, so the toggle sits just outside it, over the document area. */
+.side-pane-left[data-collapsed="true"] .pane-toggle {
+  right: auto;
+  left: 6px;
+}
+
+.side-pane-right[data-collapsed="true"] .pane-toggle {
+  left: auto;
+  right: 6px;
+}

@@ -1,0 +1,19 @@
+/* Paginae's own neutral palette. Every colour in the UI comes from these variables. */
+:root {
+  --bg: #f3f1ec;
+  --paper: #fff;
+  --ink: #23272b;
+  --muted: #6b7177;
+  --line: #d9d5cc;
+  --accent: #2f6f8f;
+  --accent-soft: #dbe9f0;
+  --warn: #b8541a;
+
+  --font: system-ui, sans-serif;
+  --radius: 6px;
+
+  --tabs-height: 36px;
+  --modes-height: 44px;
+  --thumbs-width: 180px;
+  --tools-width: 280px;
+}

@@ -1,0 +1,83 @@
+{
+  "app": { "title": "Paginae" },
+  "modes": {
+    "read": "Lesen",
+    "comment": "Kommentieren",
+    "fill": "Ausfüllen",
+    "pages": "Seiten",
+    "tools": "Werkzeuge",
+    "comingSoon": "Kommt in einem späteren Bauabschnitt"
+  },
+  "actions": {
+    "open": "PDF öffnen",
+    "close": "Schließen",
+    "print": "Drucken",
+    "undo": "Rückgängig",
+    "redo": "Wiederholen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "ok": "OK",
+    "help": "Hilfe",
+    "collapseLeft": "Seitenübersicht ausblenden",
+    "expandLeft": "Seitenübersicht einblenden",
+    "collapseRight": "Werkzeugbereich ausblenden",
+    "expandRight": "Werkzeugbereich einblenden"
+  },
+  "tabs": { "newTab": "Weitere Datei öffnen", "closeTab": "{{name}} schließen" },
+  "start": {
+    "headline": "Eine PDF-Datei öffnen",
+    "hint": "Datei hierher ziehen oder öffnen.",
+    "recent": "Zuletzt geöffnet",
+    "noRecent": "Noch keine Dateien geöffnet."
+  },
+  "thumbnails": {
+    "title": "Seiten",
+    "page": "Seite {{n}}",
+    "dropHint": "Datei hierher ziehen = Seiten anhängen (ab Etappe 2)"
+  },
+  "reader": {
+    "zoom": "Zoom",
+    "fitWidth": "Seitenbreite",
+    "fitPage": "Ganze Seite",
+    "zoomIn": "Vergrößern",
+    "zoomOut": "Verkleinern",
+    "pageOf": "Seite {{n}} von {{total}}",
+    "prevPage": "Vorige Seite",
+    "nextPage": "Nächste Seite",
+    "search": "Suchen",
+    "searchPlaceholder": "Im Dokument suchen",
+    "hits_one": "{{count}} Treffer",
+    "hits_other": "{{count}} Treffer",
+    "noHits": "Nichts gefunden.",
+    "noText": "Diese Datei enthält keinen durchsuchbaren Text. Texterkennung folgt in Bauabschnitt 2.",
+    "nextHit": "Nächster Treffer",
+    "prevHit": "Voriger Treffer",
+    "bookmarks": "Lesezeichen",
+    "noBookmarks": "Diese Datei hat keine Lesezeichen."
+  },
+  "password": {
+    "title": "Passwort erforderlich",
+    "text": "„{{name}}“ ist mit einem Passwort geschützt.",
+    "label": "Passwort",
+    "wrong": "Das Passwort ist falsch. Bitte erneut versuchen.",
+    "open": "Öffnen"
+  },
+  "banners": {
+    "xfa": "Dieses Formular ist ein XFA-Formular. Paginae kann es anzeigen, aber nicht ausfüllen; dafür bitte den Acrobat Reader verwenden.",
+    "noPrint": "Der Ersteller dieser Datei hat das Drucken gesperrt."
+  },
+  "errors": {
+    "io": "Die Datei konnte nicht gelesen werden.",
+    "invalid_format": "Das ist keine lesbare PDF-Datei.",
+    "engine_load": "Der PDF-Motor konnte nicht geladen werden. Bitte Paginae neu installieren.",
+    "unknown_document": "Dieses Dokument ist nicht mehr geöffnet.",
+    "page_out_of_range": "Diese Seite gibt es nicht.",
+    "engine": "Beim Verarbeiten der PDF-Datei ist ein Fehler aufgetreten.",
+    "unknown": "Unerwarteter Fehler: {{message}}"
+  },
+  "print": {
+    "title": "Druckansicht",
+    "preparing": "Seiten werden vorbereitet ({{done}} von {{total}})…",
+    "ready": "Der Druckdialog öffnet sich."
+  }
+}
