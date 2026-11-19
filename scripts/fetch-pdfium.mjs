@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Downloads the pinned PDFium build for this platform (or --all) into resources/pdfium/.
 import { createHash } from "node:crypto";
-import { mkdirSync, existsSync, readFileSync, writeFileSync, rmSync, cpSync } from "node:fs";
+import { mkdirSync, existsSync, writeFileSync, rmSync, cpSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,19 +27,26 @@ export async function fetchBuild(platform, root) {
   const libPath = join(target, build.lib.split("/").pop());
   if (existsSync(libPath)) { console.log(`${platform}: present`); return libPath; }
   const url = `https://github.com/bblanchon/pdfium-binaries/releases/download/${encodeURIComponent(RELEASE)}/${build.asset}`;
-  const bytes = Buffer.from(await (await fetch(url)).arrayBuffer());
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${build.asset}: download failed, HTTP ${res.status} ${res.statusText} (${url})`);
+  const bytes = Buffer.from(await res.arrayBuffer());
   const sha = createHash("sha256").update(bytes).digest("hex");
   if (sha !== build.sha256) throw new Error(`${build.asset}: checksum ${sha} differs from pinned ${build.sha256}`);
   const work = join(tmpdir(), `pdfium-${platform}-${Date.now()}`);
   mkdirSync(work, { recursive: true });
-  writeFileSync(join(work, build.asset), bytes);
-  execFileSync("tar", ["-xzf", build.asset], { cwd: work });
-  mkdirSync(target, { recursive: true });
-  cpSync(join(work, build.lib), libPath);
-  cpSync(join(work, "LICENSE"), join(root, "resources", "pdfium", "LICENSE-pdfium-binaries.txt"));
-  cpSync(join(work, "VERSION"), join(root, "resources", "pdfium", "VERSION"));
-  cpSync(join(work, "licenses"), join(root, "resources", "pdfium", "licenses"), { recursive: true });
-  rmSync(work, { recursive: true, force: true });
+  try {
+    writeFileSync(join(work, build.asset), bytes);
+    execFileSync("tar", ["-xzf", build.asset], { cwd: work });
+    const pdfiumDir = join(root, "resources", "pdfium");
+    cpSync(join(work, "LICENSE"), join(pdfiumDir, "LICENSE-pdfium-binaries.txt"));
+    cpSync(join(work, "VERSION"), join(pdfiumDir, "VERSION"));
+    cpSync(join(work, "licenses"), join(pdfiumDir, "licenses"), { recursive: true });
+    // The library goes last: its presence is the "done" marker checked above.
+    mkdirSync(target, { recursive: true });
+    cpSync(join(work, build.lib), libPath);
+  } finally {
+    rmSync(work, { recursive: true, force: true });
+  }
   console.log(`${platform}: fetched ${build.asset} (${bytes.length} bytes, sha256 ok)`);
   return libPath;
 }

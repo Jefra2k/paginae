@@ -4,6 +4,8 @@ Paginae is a free, open-source PDF tool for teachers and school staff (Windows a
 
 ## Build
 
+Run `npm run fetch:pdfium` before any `cargo build` or `cargo test`: the bundle resources reference the fetched PDFium files.
+
 ```
 npm ci
 npm run fetch:pdfium
@@ -11,6 +13,8 @@ npm run tauri dev
 ```
 
 ## Tests
+
+Run `npm run fetch:pdfium` first (once), because the bundle resources reference the fetched files.
 
 ```
 cargo test --workspace
