@@ -41,7 +41,6 @@ impl CoreError {
 
     /// Maps a load error of PDFium. `had_password` decides between
     /// "password required" and "wrong password" (PDFium reports both the same).
-    #[allow(dead_code)] // first used by the document layer in a later task
     pub(crate) fn from_load(err: PdfiumError, had_password: bool) -> CoreError {
         match err {
             PdfiumError::PdfiumLibraryInternalError(PdfiumInternalError::PasswordError) => {
@@ -63,6 +62,9 @@ impl CoreError {
     }
 }
 
+/// Blanket mapping for PDFium calls on an already loaded document. Results of
+/// `load_pdf_*` must go through [`CoreError::from_load`], never `?`, or password
+/// errors degrade to `Engine(..)`.
 impl From<PdfiumError> for CoreError {
     fn from(err: PdfiumError) -> Self {
         match err {

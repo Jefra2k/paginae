@@ -8,17 +8,12 @@ use crate::error::CoreError;
 /// The one PDFium instance of the process. PDFium itself is single-threaded;
 /// pdfium-render (feature `thread_safe`, on by default) serialises every call
 /// behind a mutex, so the engine and its documents may be shared between threads.
+#[derive(Debug)]
 pub struct Engine {
     pdfium: Pdfium,
 }
 
 static ENGINE: OnceLock<Engine> = OnceLock::new();
-
-impl std::fmt::Debug for Engine {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Engine").finish_non_exhaustive()
-    }
-}
 
 impl Engine {
     /// Binds the PDFium library found in `library_dir` (`pdfium.dll` / `libpdfium.dylib`).
