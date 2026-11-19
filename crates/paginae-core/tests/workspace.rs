@@ -157,3 +157,37 @@ fn open_reports_missing_empty_and_non_pdf_files() {
     std::fs::write(&fake, b"Das ist kein PDF").unwrap();
     assert!(matches!(ws.open(&fake, None), Err(CoreError::InvalidFormat)));
 }
+
+#[test]
+fn rotated_pages_report_displayed_size() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join("quer.pdf");
+    fixtures::write_rotated_pdf(
+        engine(),
+        &path,
+        &["Quer"],
+        pdfium_render::prelude::PdfPageRenderRotation::Degrees90,
+    )
+    .unwrap();
+    let ws = Workspace::new(engine());
+    let info = ws.open(&path, None).unwrap();
+    assert_eq!(info.pages[0].rotation, 90);
+    assert!(
+        (info.pages[0].width_pt - 841.9).abs() < 1.0,
+        "{:?}",
+        info.pages[0]
+    );
+    assert!(
+        (info.pages[0].height_pt - 595.3).abs() < 1.0,
+        "{:?}",
+        info.pages[0]
+    );
+    let png = ws.render_png(info.id, 0, 300).unwrap();
+    let img = image::load_from_memory(&png).unwrap();
+    let expected = 300.0 * 595.3 / 841.9;
+    assert!(
+        (img.height() as f64 - expected).abs() <= 2.0,
+        "got {}",
+        img.height()
+    );
+}

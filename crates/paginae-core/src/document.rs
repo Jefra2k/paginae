@@ -143,6 +143,7 @@ impl Workspace {
         let doc = OpenDocument {
             path: path.to_path_buf(),
             pdf,
+            // The UI only passes a password after `PasswordRequired`, so this equals "the file is encrypted".
             encrypted: password.is_some(),
         };
         let info = describe(id, &doc)?;
@@ -293,12 +294,8 @@ fn describe(id: DocId, doc: &OpenDocument) -> Result<DocumentInfo, CoreError> {
             PdfPageRenderRotation::Degrees270 => 270,
         };
         let (w, h) = (page.width().value, page.height().value);
-        // PDFium reports the unrotated media box; swap for 90/270 so the UI sees the displayed size.
-        let (width_pt, height_pt) = if rotation == 90 || rotation == 270 {
-            (h, w)
-        } else {
-            (w, h)
-        };
+        // PDFium already reports the displayed size (after /Rotate); no swap needed.
+        let (width_pt, height_pt) = (w, h);
         pages.push(PageInfo {
             index: index as u32,
             width_pt,
@@ -311,6 +308,7 @@ fn describe(id: DocId, doc: &OpenDocument) -> Result<DocumentInfo, CoreError> {
         Some(PdfFormType::Acrobat) => FormKind::AcroForm,
         Some(PdfFormType::XfaFull) | Some(PdfFormType::XfaForeground) => FormKind::Xfa,
     };
+    // Deliberately fail-open: a permissions query error must not lock a teacher out of printing.
     let p = pdf.permissions();
     let permissions = Permissions {
         print: p.can_print_high_quality().unwrap_or(true) || p.can_print_only_low_quality().unwrap_or(true),

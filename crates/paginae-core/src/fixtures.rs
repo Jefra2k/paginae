@@ -36,3 +36,27 @@ pub fn write_blank_pdf(engine: &Engine, path: &Path, pages: u32) -> Result<(), C
     doc.save_to_file(path)?;
     Ok(())
 }
+
+/// Like [`write_text_pdf`], but every page carries the given /Rotate value.
+pub fn write_rotated_pdf(
+    engine: &Engine,
+    path: &Path,
+    pages: &[&str],
+    rotation: PdfPageRenderRotation,
+) -> Result<(), CoreError> {
+    let mut doc = engine.pdfium().create_new_pdf()?;
+    let font = doc.fonts_mut().helvetica();
+    for text in pages {
+        let mut page = doc.pages_mut().create_page_at_end(PdfPagePaperSize::a4())?;
+        page.objects_mut().create_text_object(
+            PdfPoints::new(72.0),
+            PdfPoints::new(760.0),
+            text,
+            font,
+            PdfPoints::new(14.0),
+        )?;
+        page.set_rotation(rotation);
+    }
+    doc.save_to_file(path)?;
+    Ok(())
+}
