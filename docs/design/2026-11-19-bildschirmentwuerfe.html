@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paginae Entwürfe</title>
+<style>
+  :root{
+    --bg:#f3f1ec; --paper:#ffffff; --ink:#23272b; --muted:#6b7177; --line:#d9d5cc;
+    --panel:#faf9f6; --accent:#2f6f8f; --accent-soft:#dbe9f0; --warn:#b8541a; --ok:#3b7d4f;
+    --shadow:0 1px 2px rgba(0,0,0,.06), 0 8px 24px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  header.page{padding:20px 24px 8px;max-width:1280px;margin:0 auto}
+  header.page h1{margin:0 0 4px;font-size:22px;font-weight:650}
+  header.page p{margin:0;color:var(--muted)}
+  nav.switch{display:flex;gap:8px;flex-wrap:wrap;padding:12px 24px;max-width:1280px;margin:0 auto}
+  nav.switch button{border:1px solid var(--line);background:var(--paper);padding:8px 14px;border-radius:999px;cursor:pointer;font:inherit;color:var(--ink)}
+  nav.switch button.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+  main{max-width:1280px;margin:0 auto;padding:0 24px 48px}
+  section.screen{display:none}
+  section.screen.active{display:block}
+  .question{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:14px 18px;margin:8px 0 16px}
+  .question h2{margin:0 0 6px;font-size:17px}
+  .question p{margin:0;color:var(--muted)}
+  .question .reco{margin-top:8px;color:var(--ink)}
+  .question .reco b{color:var(--accent)}
+
+  /* App-Fenster */
+  .win{background:var(--paper);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:22px}
+  .titlebar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--panel);font-size:13px;color:var(--muted)}
+  .dots span{display:inline-block;width:10px;height:10px;border-radius:50%;background:#cfcac0;margin-right:5px}
+  .tabs{display:flex;gap:4px;margin-left:12px}
+  .tab{padding:4px 12px;border-radius:8px 8px 0 0;border:1px solid var(--line);border-bottom:none;background:#eeeae2;color:var(--muted);font-size:13px}
+  .tab.on{background:var(--paper);color:var(--ink)}
+  .modes{display:flex;align-items:center;gap:6px;padding:8px 12px;border-bottom:1px solid var(--line)}
+  .mode{padding:6px 14px;border-radius:8px;border:1px solid transparent;color:var(--muted);font-size:14px}
+  .mode.on{background:var(--accent-soft);color:var(--accent);border-color:#c5dbe6;font-weight:600}
+  .modes .spacer{flex:1}
+  .chip{padding:5px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;color:var(--muted);background:var(--paper)}
+  .chip.save{color:var(--ok);border-color:#bcd9c4}
+  .chip.dirty{color:var(--warn);border-color:#e6c3ad}
+  .body{display:grid;min-height:520px}
+  .layoutA .body{grid-template-columns:170px 1fr 260px}
+  .layoutB .body{grid-template-columns:56px 1fr}
+  .thumbs{border-right:1px solid var(--line);background:var(--panel);padding:10px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+  .thumbs .hint{font-size:11px;color:var(--muted);text-align:center;margin-top:4px}
+  .thumb{background:#fff;border:1px solid var(--line);border-radius:4px;height:92px;position:relative;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+  .thumb.sel{outline:2px solid var(--accent);outline-offset:1px}
+  .thumb .n{position:absolute;bottom:4px;right:6px;font-size:11px;color:var(--muted)}
+  .thumb .lines{position:absolute;left:10px;right:10px;top:12px}
+  .thumb .lines i{display:block;height:3px;background:#e4e0d8;margin-bottom:5px;border-radius:2px}
+  .thumb .lines i:nth-child(2){width:70%}.thumb .lines i:nth-child(4){width:50%}
+  .thumb.drop{border:2px dashed #c9c3b7;background:transparent;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;text-align:center;padding:6px}
+  .doc{background:#e9e6df;padding:22px;display:flex;justify-content:center;align-items:flex-start;position:relative}
+  .pagepaper{background:#fff;width:420px;min-height:470px;box-shadow:0 2px 10px rgba(0,0,0,.12);padding:34px 36px;position:relative;font-size:12px;color:#444}
+  .pagepaper h4{margin:0 0 14px;font-size:15px;color:#222}
+  .pagepaper p{margin:0 0 10px}
+  .hl{background:#fff2a8;padding:0 2px}
+  .field{display:inline-block;border-bottom:1px solid #999;min-width:120px;height:14px;vertical-align:bottom}
+  .fill{color:var(--accent);font-family:"Segoe Print","Comic Sans MS",cursive;font-size:13px}
+  .check{display:inline-block;width:12px;height:12px;border:1px solid #777;vertical-align:middle;margin-right:4px;position:relative}
+  .check.x::after{content:"✓";position:absolute;left:1px;top:-4px;color:var(--accent);font-size:13px;font-weight:700}
+  .sig{display:inline-block;color:#1a3b73;font-family:"Segoe Script","Brush Script MT",cursive;font-size:20px;transform:rotate(-3deg);border:1px dashed #9db8d8;padding:2px 10px;border-radius:4px}
+  .sig small{display:block;font:10px system-ui;color:var(--muted);transform:none;text-align:center}
+  .panel{border-left:1px solid var(--line);background:var(--panel);padding:14px}
+  .panel h5{margin:0 0 10px;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  .tool{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;font-size:14px;color:var(--ink)}
+  .tool.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .tool .ic{width:18px;height:18px;border-radius:4px;background:#cfd8de;flex:none}
+  .tool.on .ic{background:var(--accent)}
+  .row{display:flex;gap:8px;align-items:center;margin:8px 0}
+  .sw{width:20px;height:20px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line)}
+  .btn{display:inline-block;padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:#fff;font-size:13px}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.ghost{background:transparent}
+  .rail{border-right:1px solid var(--line);background:var(--panel);display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:6px}
+  .rail .r{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:10px;text-align:center;line-height:1.1}
+  .rail .r.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+  .floatbar{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:6px 8px;display:flex;gap:6px;align-items:center;font-size:13px}
+  .floatbar .sep{width:1px;height:18px;background:var(--line)}
+  .ctx{position:absolute;left:300px;top:150px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);min-width:230px;padding:6px;font-size:13px}
+  .ctx div{padding:7px 10px;border-radius:6px}
+  .ctx div.hov{background:var(--accent-soft);color:var(--accent)}
+  .ctx hr{border:none;border-top:1px solid var(--line);margin:4px 0}
+  .ctx kbd{float:right;color:var(--muted);font:11px system-ui}
+  .dialog{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:440px;background:#fff;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.25);padding:20px 22px;font-size:14px}
+  .dialog h4{margin:0 0 8px;font-size:16px}
+  .dialog p{margin:0 0 10px;color:var(--muted)}
+  .dialog .opt{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;display:flex;gap:10px;align-items:flex-start}
+  .dialog .opt.rec{border-color:var(--accent);background:var(--accent-soft)}
+  .dialog .opt b{display:block;font-size:14px}
+  .dialog .opt span{color:var(--muted);font-size:13px}
+  .dialog .acts{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+  .dim{position:absolute;inset:0;background:rgba(30,30,30,.25)}
+  .notes{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .note{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+  .note h4{margin:0 0 6px;font-size:14px}
+  .note ul{margin:0;padding-left:18px;color:var(--muted)}
+  .pick{display:flex;gap:10px;margin:6px 0 18px;flex-wrap:wrap}
+  .pick label{display:flex;gap:8px;align-items:center;border:1px solid var(--line);background:var(--paper);border-radius:10px;padding:8px 12px;cursor:pointer}
+  .pick input{accent-color:var(--accent)}
+  .pick label.sel{border-color:var(--accent);background:var(--accent-soft)}
+  .legend{font-size:12px;color:var(--muted);margin:-10px 0 14px}
+  @media (max-width:900px){.layoutA .body{grid-template-columns:1fr}.thumbs,.panel{display:none}.notes{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="page">
+  <h1>Paginae · Bildschirmentwürfe der Grundaufteilung</h1>
+  <p>Entwurf vom 2026-11-19. Drahtgitter, keine Farbentscheidung: Farben, Symbole und Schrift kommen später. Alle Texte sind Platzhalter auf Deutsch; die Oberfläche wird zweisprachig.</p>
+</header>
+
+<nav class="switch">
+  <button class="active" data-s="a">1 · Variante A: Werkbank</button>
+  <button data-s="b">2 · Variante B: Leiste</button>
+  <button data-s="fill">3 · Ausfüllen &amp; Unterschreiben</button>
+  <button data-s="ctx">4 · Rechtsklick auf der Seite</button>
+  <button data-s="save">5 · Speichern mit Sicherungsnetz</button>
+</nav>
+
+<main>
+
+<!-- ============ Variante A ============ -->
+<section class="screen active" id="s-a">
+  <div class="question">
+    <h2>Frage 1: Welche Grundaufteilung soll Paginae haben?</h2>
+    <p>Variante A, „Werkbank“: Seitenübersicht links immer sichtbar, oben fünf Arbeitsweisen, rechts die Einstellungen des aktiven Werkzeugs. Vergleichen Sie mit Variante B im nächsten Reiter.</p>
+    <p class="reco">Empfehlung Claude: <b>Variante A</b>. Die Seitenübersicht ist für Lehrkräfte das wichtigste Werkzeug (ordnen, zusammenführen, entnehmen) und bleibt im Blick; der rechte Bereich hält das Dokument frei von schwebenden Leisten.</p>
+  </div>
+
+  <div class="win layoutA">
+    <div class="titlebar">
+      <span class="dots"><span></span><span></span><span></span></span>
+      <span>Paginae</span>
+      <div class="tabs"><span class="tab on">Elternbrief Klassenfahrt.pdf</span><span class="tab">Formular Ausflug.pdf</span><span class="tab">＋</span></div>
+    </div>
+    <div class="modes">
+      <span class="mode">Lesen</span><span class="mode on">Kommentieren</span><span class="mode">Ausfüllen</span><span class="mode">Seiten</span><span class="mode">Werkzeuge</span>
+      <span class="spacer"></span>
+      <span class="chip">↶ Rückgängig</span><span class="chip">↷</span><span class="chip dirty">● Nicht gespeichert</span><span class="chip">Speichern</span><span class="chip">Hilfe</span>
+    </div>
+    <div class="body">
+      <aside class="thumbs">
+        <div class="thumb sel"><div class="lines"><i></i><i></i><i></i><i></i></div><span class="n">1</span></div>
+        <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div><span class="n">2</span></div>
+        <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div><span class="n">3</span></div>
+        <div class="thumb drop">Datei hierher ziehen = Seiten anhängen</div>
+        <div class="hint">Ziehen zum Umsortieren · Rechtsklick für Drehen, Löschen, Entnehmen</div>
+      </aside>
+      <div class="doc">
+        <div class="pagepaper">
+          <h4>Elternbrief: Klassenfahrt nach Echternach</h4>
+          <p>Léif Elteren, liebe Eltern,</p>
+          <p>vom <span class="hl">12. bis 14. Mai 2027</span> fährt die Klasse 4.2 in die Jugendherberge Echternach. Bitte geben Sie den unteren Abschnitt bis zum 30. April zurück.</p>
+          <p>Mitzubringen sind feste Schuhe, Regenjacke, Schlafsack und ein Lunchpaket für den ersten Tag.</p>
+          <p style="margin-top:28px;border-top:1px dashed #bbb;padding-top:10px">Rückmeldung</p>
+          <p>Name des Kindes: <span class="field"></span></p>
+          <p><span class="check"></span> Mein Kind nimmt teil &nbsp; <span class="check"></span> Mein Kind nimmt nicht teil</p>
+          <p>Unterschrift: <span class="field" style="min-width:160px"></span></p>
+        </div>
+      </div>
+      <aside class="panel">
+        <h5>Kommentieren</h5>
+        <div class="tool on"><span class="ic"></span>Markieren</div>
+        <div class="tool"><span class="ic"></span>Unterstreichen</div>
+        <div class="tool"><span class="ic"></span>Durchstreichen</div>
+        <div class="tool"><span class="ic"></span>Stift</div>
+        <div class="tool"><span class="ic"></span>Notiz</div>
+        <div class="tool"><span class="ic"></span>Textfeld</div>
+        <div class="tool"><span class="ic"></span>Form / Pfeil</div>
+        <h5 style="margin-top:16px">Farbe</h5>
+        <div class="row"><span class="sw" style="background:#ffe066"></span><span class="sw" style="background:#9be09b"></span><span class="sw" style="background:#9ec5ff"></span><span class="sw" style="background:#ffa8a8"></span></div>
+        <h5 style="margin-top:16px">Kommentare im Dokument</h5>
+        <div class="tool"><span class="ic" style="background:#ffe066"></span>Seite 1 · „12. bis 14. Mai“</div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="notes">
+    <div class="note"><h4>Was Variante A festlegt</h4><ul><li>Ein Ort je Funktion: Werkzeuge nur im rechten Bereich der aktiven Arbeitsweise.</li><li>Seitenübersicht immer sichtbar, Dateien hineinziehen heißt zusammenführen.</li><li>Rückgängig, Wiederholen und Speicherzustand immer oben rechts.</li><li>Mehrere Dokumente als Reiter.</li></ul></div>
+    <div class="note"><h4>Abwägung</h4><ul><li>Plus: ruhig, vorhersehbar, nichts verdeckt das Dokument.</li><li>Minus: auf kleinen Laptop-Bildschirmen (13 Zoll) bleibt weniger Platz für die Seite; beide Seitenbereiche lassen sich einklappen.</li></ul></div>
+  </div>
+</section>
+
+<!-- ============ Variante B ============ -->
+<section class="screen" id="s-b">
+  <div class="question">
+    <h2>Frage 1, Gegenentwurf: Variante B, „Leiste“</h2>
+    <p>Schmale Leiste links mit den Arbeitsweisen, die Seitenübersicht klappt nur auf Wunsch auf, die Werkzeuge schweben als kleine Leiste über dem Dokument. Maximaler Platz für die Seite.</p>
+    <p class="reco">Einschätzung Claude: schöner auf kleinen Bildschirmen, aber die Seitenübersicht als wichtigstes Lehrkraft-Werkzeug ist versteckt, und schwebende Leisten verdecken Teile der Seite. Darum zweite Wahl.</p>
+  </div>
+
+  <div class="win layoutB">
+    <div class="titlebar">
+      <span class="dots"><span></span><span></span><span></span></span>
+      <span>Paginae</span>
+      <div class="tabs"><span class="tab on">Elternbrief Klassenfahrt.pdf</span><span class="tab">Formular Ausflug.pdf</span><span class="tab">＋</span></div>
+      <span class="spacer" style="flex:1"></span>
+      <span class="chip">↶</span><span class="chip">↷</span><span class="chip dirty">●</span><span class="chip">Speichern</span>
+    </div>
+    <div class="body">
+      <aside class="rail">
+        <div class="r">Lesen</div><div class="r on">Komm.</div><div class="r">Aus-<br>füllen</div><div class="r">Seiten</div><div class="r">Werk-<br>zeuge</div>
+        <div style="flex:1"></div>
+        <div class="r">Hilfe</div>
+      </aside>
+      <div class="doc">
+        <div class="floatbar"><span>Markieren</span><span>Unterstr.</span><span>Stift</span><span>Notiz</span><span>Text</span><span class="sep"></span><span class="sw" style="background:#ffe066;width:16px;height:16px"></span><span class="sw" style="background:#9be09b;width:16px;height:16px"></span><span class="sw" style="background:#9ec5ff;width:16px;height:16px"></span></div>
+        <div class="pagepaper" style="margin-top:36px;width:520px">
+          <h4>Elternbrief: Klassenfahrt nach Echternach</h4>
+          <p>Léif Elteren, liebe Eltern,</p>
+          <p>vom <span class="hl">12. bis 14. Mai 2027</span> fährt die Klasse 4.2 in die Jugendherberge Echternach. Bitte geben Sie den unteren Abschnitt bis zum 30. April zurück.</p>
+          <p>Mitzubringen sind feste Schuhe, Regenjacke, Schlafsack und ein Lunchpaket für den ersten Tag.</p>
+          <p style="margin-top:28px;border-top:1px dashed #bbb;padding-top:10px">Rückmeldung</p>
+          <p>Name des Kindes: <span class="field"></span></p>
+          <p><span class="check"></span> Mein Kind nimmt teil &nbsp; <span class="check"></span> Mein Kind nimmt nicht teil</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <div class="note"><h4>Was Variante B festlegt</h4><ul><li>Arbeitsweisen senkrecht in einer schmalen Leiste.</li><li>Seitenübersicht erst nach Klick auf „Seiten“ als aufklappbarer Bereich.</li><li>Werkzeuge als schwebende Leiste über dem Dokument.</li></ul></div>
+    <div class="note"><h4>Abwägung</h4><ul><li>Plus: größte Seite, modern, gut auf 13 Zoll.</li><li>Minus: Seiten ordnen und zusammenführen sind einen Klick weiter weg; schwebende Leiste verdeckt den Seitenkopf; Farben und Einstellungen haben wenig Platz.</li></ul></div>
+  </div>
+</section>
+
+<!-- ============ Ausfüllen ============ -->
+<section class="screen" id="s-fill">
+  <div class="question">
+    <h2>Frage 2: Fühlt sich „Ausfüllen &amp; Unterschreiben“ so leicht an, wie es sein muss?</h2>
+    <p>Die stille Hauptfunktion aus dem Inventar: anklicken, tippen, fertig. Haken per Klick, Unterschrift aus dem lokalen Speicher. Gezeigt in Variante A.</p>
+    <p class="reco">Zu entscheiden: <b>Reicht dieser Ablauf</b>, oder fehlt ein Handgriff aus Ihrem Alltag (etwa Datum einfügen, Initialen, mehrere gespeicherte Unterschriften)?</p>
+  </div>
+
+  <div class="win layoutA">
+    <div class="titlebar"><span class="dots"><span></span><span></span><span></span></span><span>Paginae</span><div class="tabs"><span class="tab on">Formular Ausflug.pdf</span></div></div>
+    <div class="modes">
+      <span class="mode">Lesen</span><span class="mode">Kommentieren</span><span class="mode on">Ausfüllen</span><span class="mode">Seiten</span><span class="mode">Werkzeuge</span>
+      <span class="spacer"></span><span class="chip">↶ Rückgängig</span><span class="chip">↷</span><span class="chip dirty">● Nicht gespeichert</span><span class="chip">Speichern</span>
+    </div>
+    <div class="body">
+      <aside class="thumbs">
+        <div class="thumb sel"><div class="lines"><i></i><i></i><i></i><i></i></div><span class="n">1</span></div>
+        <div class="hint">1 Seite · Scan</div>
+      </aside>
+      <div class="doc">
+        <div class="pagepaper" style="background:#fdfcf8">
+          <h4>Demande d'autorisation de sortie scolaire</h4>
+          <p style="color:#888;font-size:11px">Gescanntes Formular ohne Formularfelder. Paginae legt Text, Haken und Unterschrift frei darauf.</p>
+          <p>Classe: <span class="field"><span class="fill">Cycle 4.2</span></span> &nbsp; Date de la sortie: <span class="field"><span class="fill">12.05.2027</span></span></p>
+          <p>Destination: <span class="field" style="min-width:220px"><span class="fill">Jugendherberge Echternach</span></span></p>
+          <p><span class="check x"></span> Transport en bus &nbsp; <span class="check"></span> À pied &nbsp; <span class="check x"></span> Nuitée</p>
+          <p>Nombre d'élèves: <span class="field" style="min-width:60px"><span class="fill">18</span></span> &nbsp; Accompagnateurs: <span class="field" style="min-width:60px"><span class="fill">3</span></span></p>
+          <p style="margin-top:26px">Signature du titulaire:</p>
+          <p><span class="sig">J. Muster<small>Klicken zum Verschieben · Entf zum Entfernen</small></span></p>
+          <p style="margin-top:18px;font-size:11px;color:#888">Cursor über dem Blatt zeigt ein Textfeld-Symbol: ein Klick setzt ein Eingabefeld an diese Stelle.</p>
+        </div>
+      </div>
+      <aside class="panel">
+        <h5>Ausfüllen</h5>
+        <div class="tool on"><span class="ic"></span>Text</div>
+        <div class="tool"><span class="ic"></span>Haken ✓</div>
+        <div class="tool"><span class="ic"></span>Kreuz ✗</div>
+        <div class="tool"><span class="ic"></span>Datum heute</div>
+        <h5 style="margin-top:16px">Unterschrift</h5>
+        <div class="tool on"><span class="ic" style="background:#1a3b73"></span>J. Muster</div>
+        <div class="tool"><span class="ic" style="background:#aaa"></span>＋ Neue zeichnen oder laden</div>
+        <h5 style="margin-top:16px">Schrift</h5>
+        <div class="row"><span class="btn">A−</span><span class="btn">A+</span><span class="btn ghost">Handschrift</span></div>
+        <div style="margin-top:22px;font-size:12px;color:var(--muted)">Beim Speichern fragt Paginae einmal, ob Ausgefülltes und Unterschrift fest eingebrannt werden sollen (Voreinstellung: ja).</div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Rechtsklick ============ -->
+<section class="screen" id="s-ctx">
+  <div class="question">
+    <h2>Frage 3: Sind das die acht Handgriffe, die per Rechtsklick auf die Seite gehören?</h2>
+    <p>Aus dem Inventar: In Acrobat arbeitet man fast nur mit Schnellleiste und Rechtsklick. Paginae bündelt die häufigsten Handgriffe hier, egal in welcher Arbeitsweise man ist.</p>
+    <p class="reco">Vorschlag Claude: <b>die acht unten</b>. Streichen oder ergänzen Sie, was Ihrem Alltag entspricht.</p>
+  </div>
+
+  <div class="win layoutA">
+    <div class="titlebar"><span class="dots"><span></span><span></span><span></span></span><span>Paginae</span><div class="tabs"><span class="tab on">Arbeitsblatt Brüche.pdf</span></div></div>
+    <div class="modes"><span class="mode on">Lesen</span><span class="mode">Kommentieren</span><span class="mode">Ausfüllen</span><span class="mode">Seiten</span><span class="mode">Werkzeuge</span><span class="spacer"></span><span class="chip">↶</span><span class="chip">↷</span><span class="chip save">✓ Gespeichert</span></div>
+    <div class="body">
+      <aside class="thumbs">
+        <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div><span class="n">1</span></div>
+        <div class="thumb sel"><div class="lines"><i></i><i></i><i></i><i></i></div><span class="n">2</span></div>
+        <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div><span class="n">3</span></div>
+      </aside>
+      <div class="doc">
+        <div class="pagepaper">
+          <h4>Arbeitsblatt: Brüche vergleichen</h4>
+          <p>1. Kreise den größeren Bruch ein: 3/4 oder 2/3</p>
+          <p>2. Ordne der Größe nach: 1/2, 5/8, 3/8, 7/8</p>
+          <p>3. Male 2/5 der Figur aus.</p>
+        </div>
+        <div class="ctx">
+          <div>Markieren <kbd>M</kbd></div>
+          <div>Notiz hier <kbd>N</kbd></div>
+          <div class="hov">Text hier eintragen <kbd>T</kbd></div>
+          <hr>
+          <div>Seite drehen <kbd>R</kbd></div>
+          <div>Seite entnehmen …</div>
+          <div>Seiten hier einfügen …</div>
+          <hr>
+          <div>Als Bild speichern …</div>
+          <div>Drucken … <kbd>Strg P</kbd></div>
+        </div>
+      </div>
+      <aside class="panel">
+        <h5>Lesen</h5>
+        <div class="tool on"><span class="ic"></span>Suchen</div>
+        <div class="tool"><span class="ic"></span>Lesezeichen</div>
+        <div class="tool"><span class="ic"></span>Zoom: Seitenbreite</div>
+        <div class="tool"><span class="ic"></span>Zwei Seiten</div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============ Speichern ============ -->
+<section class="screen" id="s-save">
+  <div class="question">
+    <h2>Frage 4: Ist das Sicherungsnetz beim Speichern verständlich und nicht lästig?</h2>
+    <p>So erscheint es nur nach strukturellen Änderungen (Seiten gelöscht, entnommen, aufgeteilt, Text korrigiert, geschwärzt, Ausgefülltes eingebrannt). Bei Kommentaren und Ausfüllen speichert Paginae ohne Nachfrage, immer mit Sicherungskopie des Originals.</p>
+    <p class="reco">Zu entscheiden: <b>Wortlaut und Voreinstellung</b>. Vorschlag: „Als Kopie speichern“ vorausgewählt.</p>
+  </div>
+
+  <div class="win layoutA">
+    <div class="titlebar"><span class="dots"><span></span><span></span><span></span></span><span>Paginae</span><div class="tabs"><span class="tab on">Zeugnisse 4.2 gesamt.pdf</span></div></div>
+    <div class="modes"><span class="mode">Lesen</span><span class="mode">Kommentieren</span><span class="mode">Ausfüllen</span><span class="mode on">Seiten</span><span class="mode">Werkzeuge</span><span class="spacer"></span><span class="chip">↶</span><span class="chip">↷</span><span class="chip dirty">● 3 Seiten gelöscht</span><span class="chip">Speichern</span></div>
+    <div class="body" style="position:relative">
+      <aside class="thumbs">
+        <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div><span class="n">1</span></div>
+        <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div><span class="n">2</span></div>
+        <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div><span class="n">3</span></div>
+      </aside>
+      <div class="doc"><div class="pagepaper"><h4>Zeugnis</h4><p>…</p></div></div>
+      <aside class="panel"><h5>Seiten</h5><div class="tool"><span class="ic"></span>Drehen</div><div class="tool"><span class="ic"></span>Löschen</div><div class="tool"><span class="ic"></span>Entnehmen</div><div class="tool"><span class="ic"></span>Aufteilen</div><div class="tool"><span class="ic"></span>Zusammenführen</div></aside>
+      <div class="dim"></div>
+      <div class="dialog">
+        <h4>Seiten wurden gelöscht. Wie speichern?</h4>
+        <p>Das Original bleibt in jedem Fall 30 Tage als Sicherungskopie erhalten (Einstellungen › Sicherungen).</p>
+        <div class="opt rec"><input type="radio" checked><div><b>Als Kopie speichern</b><span>Zeugnisse 4.2 gesamt – bearbeitet.pdf im selben Ordner. Das Original bleibt unverändert.</span></div></div>
+        <div class="opt"><input type="radio"><div><b>Original überschreiben</b><span>Zeugnisse 4.2 gesamt.pdf wird ersetzt. Rückgängig ist über die Sicherungskopie möglich.</span></div></div>
+        <div class="acts"><span class="btn">Abbrechen</span><span class="btn primary">Speichern</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <div class="note"><h4>Regel dahinter</h4><ul><li>Erstes Speichern je Dokument und Sitzung: Sicherungskopie, immer.</li><li>Kommentare, Ausfüllen, Drehen: Speichern ins Original ohne Dialog.</li><li>Strukturelle Änderungen: dieser Dialog, Kopie vorausgewählt.</li></ul></div>
+    <div class="note"><h4>Offene Wortlautfragen</h4><ul><li>„bearbeitet“ als Namenszusatz, oder lieber Datum („2027-05-12“)?</li><li>Soll „Original überschreiben“ merkbar sein („nicht mehr fragen“)? Vorschlag: nein.</li></ul></div>
+  </div>
+</section>
+
+</main>
+
+<script>
+  const buttons=document.querySelectorAll('nav.switch button');
+  const screens=document.querySelectorAll('section.screen');
+  buttons.forEach(b=>b.addEventListener('click',()=>{
+    buttons.forEach(x=>x.classList.remove('active'));b.classList.add('active');
+    screens.forEach(s=>s.classList.toggle('active',s.id==='s-'+b.dataset.s));
+    window.scrollTo({top:0,behavior:'smooth'});
+  }));
+</script>
+</body>
+</html>

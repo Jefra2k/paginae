@@ -7,7 +7,13 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "fetch:pdfium": "node scripts/fetch-pdfium.mjs",
+    "test": "vitest run",
+    "check:i18n": "vitest run src/i18n",
+    "check:licenses": "node scripts/check-licenses.mjs",
+    "check:network": "node scripts/check-network-deps.mjs",
+    "e2e": "wdio run wdio.conf.ts"
   },
   "dependencies": {
     "react": "^19.1.0",

@@ -1,0 +1,15 @@
+[package]
+name = "paginae-core"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+description = "PDF core of Paginae (PDFium via pdfium-render), independent of the desktop shell"
+
+[dependencies]
+pdfium-render = "0.9.5"
+image = { version = "0.25", default-features = false, features = ["png"] }
+thiserror = "2"
+serde = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+tempfile = "3"

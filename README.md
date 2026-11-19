@@ -1,7 +1,28 @@
-# Tauri + React + Typescript
+# Paginae
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+Paginae is a free, open-source PDF tool for teachers and school staff (Windows and macOS). **Status: in development, not yet for use.**
 
-## Recommended IDE Setup
+## Build
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+```
+npm ci
+npm run fetch:pdfium
+npm run tauri dev
+```
+
+## Tests
+
+```
+cargo test --workspace
+npm test
+```
+
+## Structure
+
+- `crates/paginae-core`: the PDF logic (PDFium via pdfium-render), independent of the desktop shell
+- `src-tauri`: the Tauri 2 desktop shell (Rust commands, window, bundling)
+- `src`: the React and TypeScript user interface
+
+## License
+
+MIT, see [LICENSE](LICENSE). Third-party components are listed in [docs/THIRD-PARTY.md](docs/THIRD-PARTY.md).
