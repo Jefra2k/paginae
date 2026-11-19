@@ -33,7 +33,7 @@ export async function fetchBuild(platform, root) {
   const work = join(tmpdir(), `pdfium-${platform}-${Date.now()}`);
   mkdirSync(work, { recursive: true });
   writeFileSync(join(work, build.asset), bytes);
-  execFileSync("tar", ["-xzf", join(work, build.asset), "-C", work]);
+  execFileSync("tar", ["-xzf", build.asset], { cwd: work });
   mkdirSync(target, { recursive: true });
   cpSync(join(work, build.lib), libPath);
   cpSync(join(work, "LICENSE"), join(root, "resources", "pdfium", "LICENSE-pdfium-binaries.txt"));
