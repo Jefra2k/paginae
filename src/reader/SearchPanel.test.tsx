@@ -184,6 +184,18 @@ test("Ctrl+F focuses the search field", async () => {
   expect(input).toHaveFocus();
 });
 
+test("Ctrl+F expands a collapsed tool pane and focuses the search field", async () => {
+  await openApp({ hits: HITS });
+  const input = await screen.findByTestId("search-input");
+  await userEvent.click(screen.getByTestId("toggle-right"));
+  expect(screen.getByTestId("pane-right")).toHaveAttribute("data-collapsed", "true");
+  expect(input).not.toBeVisible();
+  await userEvent.keyboard("{Control>}f{/Control}");
+  expect(screen.getByTestId("pane-right")).toHaveAttribute("data-collapsed", "false");
+  expect(input).toBeVisible();
+  expect(input).toHaveFocus();
+});
+
 test("the search field has the catalog placeholder", async () => {
   await openApp({ hits: HITS });
   expect(await screen.findByPlaceholderText(de.reader.searchPlaceholder)).toBeInTheDocument();

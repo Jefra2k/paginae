@@ -8,12 +8,20 @@ export interface AppShellProps {
   left?: ReactNode;
   center?: ReactNode;
   right?: ReactNode;
+  /** Changes whenever the right pane must be shown (e.g. Ctrl+F); expands it if collapsed. */
+  revealRight?: number;
 }
 
 /** Workbench layout A: tabs, modes, then thumbnails | document | tools. */
-export function AppShell({ tabs, left, center, right }: AppShellProps) {
+export function AppShell({ tabs, left, center, right, revealRight = 0 }: AppShellProps) {
   const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
+  // Expand during render (not in an effect), so the pane is visible in the same commit and children can focus at once.
+  const [seenReveal, setSeenReveal] = useState(revealRight);
+  if (seenReveal !== revealRight) {
+    setSeenReveal(revealRight);
+    setRightCollapsed(false);
+  }
 
   return (
     <div className="app-shell" data-left-collapsed={leftCollapsed} data-right-collapsed={rightCollapsed}>

@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronUp, Maximize, MoveHorizontal, ZoomIn, ZoomOut } from "lucide-react";
-import { useEffect, useState, type Ref } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useBackend } from "../backend/BackendContext";
 import type { Bookmark } from "../backend/types";
@@ -14,12 +14,13 @@ export function ReaderToolPane({
   doc,
   fitPercent = null,
   search,
-  searchInputRef,
+  focusRequest = 0,
 }: {
   doc: DocState;
   fitPercent?: number | null;
   search: SearchApi;
-  searchInputRef?: Ref<HTMLInputElement>;
+  /** Changes whenever the search field should take focus. */
+  focusRequest?: number;
 }) {
   const { t } = useTranslation();
   const backend = useBackend();
@@ -120,7 +121,7 @@ export function ReaderToolPane({
       </section>
       <section className="tool-section" aria-labelledby="reader-search-title">
         <h2 id="reader-search-title">{t("reader.search")}</h2>
-        <SearchPanel doc={doc} search={search} inputRef={searchInputRef} />
+        <SearchPanel doc={doc} search={search} focusRequest={focusRequest} />
       </section>
       <section className="tool-section" aria-labelledby="reader-bookmarks-title">
         <h2 id="reader-bookmarks-title">{t("reader.bookmarks")}</h2>

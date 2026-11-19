@@ -24,7 +24,7 @@ function Workbench() {
   const [caches] = useState(() => createRenderCaches(backend));
   const viewRef = useRef<DocumentViewHandle>(null);
   const [fitPercent, setFitPercent] = useState<number | null>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [searchFocusRequest, setSearchFocusRequest] = useState(0);
 
   useEffect(
     () => () => {
@@ -101,8 +101,7 @@ function Workbench() {
           return true;
         }
         case "focusSearch":
-          searchInputRef.current?.focus();
-          searchInputRef.current?.select();
+          setSearchFocusRequest((n) => n + 1);
           return true;
         case "nextHit":
           search.next();
@@ -140,6 +139,7 @@ function Workbench() {
     <RenderCachesContext.Provider value={caches}>
       <ViewerContext.Provider value={viewer}>
         <AppShell
+          revealRight={searchFocusRequest}
           tabs={{
             tabs,
             activeId: state.activeId,
@@ -187,7 +187,7 @@ function Workbench() {
           }
           right={
             active ? (
-              <ReaderToolPane doc={active} fitPercent={fitPercent} search={search} searchInputRef={searchInputRef} />
+              <ReaderToolPane doc={active} fitPercent={fitPercent} search={search} focusRequest={searchFocusRequest} />
             ) : null
           }
         />

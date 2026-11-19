@@ -1,5 +1,5 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
-import type { Ref } from "react";
+import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { DocState } from "../state/documents";
 import type { SearchApi } from "./useSearch";
@@ -8,13 +8,19 @@ import type { SearchApi } from "./useSearch";
 export function SearchPanel({
   doc,
   search,
-  inputRef,
+  focusRequest = 0,
 }: {
   doc: DocState;
   search: SearchApi;
-  inputRef?: Ref<HTMLInputElement>;
+  focusRequest?: number;
 }) {
   const { t } = useTranslation();
+  const inputRef = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (focusRequest === 0) return;
+    inputRef.current?.focus();
+    inputRef.current?.select();
+  }, [focusRequest]);
   const { hits, current, status } = search;
 
   const groups: { page: number; indices: number[] }[] = [];
