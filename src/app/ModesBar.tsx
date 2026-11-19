@@ -23,7 +23,7 @@ export function ModesBar() {
   };
 
   return (
-    <nav className="modes-bar">
+    <nav className="modes-bar" aria-label={t("modes.label")}>
       <div className="modes" role="group">
         {MODES.map(({ mode, icon: Icon }) => {
           const active = mode === "read";

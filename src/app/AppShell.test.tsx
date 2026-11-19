@@ -18,7 +18,11 @@ function renderShell({ language = "de" }: { language?: "de" | "fr" } = {}) {
 test("shows the five modes with German labels, only Lesen enabled", () => {
   renderShell();
   expect(screen.getByTestId("mode-read")).toHaveTextContent("Lesen");
-  expect(screen.getByTestId("mode-comment")).toHaveAttribute("aria-disabled", "true");
+  expect(screen.getByTestId("mode-read")).not.toHaveAttribute("aria-disabled");
+  for (const id of ["mode-comment", "mode-fill", "mode-pages", "mode-tools"]) {
+    expect(screen.getByTestId(id)).toHaveAttribute("aria-disabled", "true");
+    expect(screen.getByTestId(id)).toHaveAttribute("title", "Kommt in einem späteren Bauabschnitt");
+  }
   // Anchored so the pane toggle "Seitenübersicht ausblenden" does not count as the mode "Seiten".
   expect(screen.getAllByRole("button", { name: /^(Kommentieren|Ausfüllen|Seiten|Werkzeuge)$/ })).toHaveLength(4);
 });

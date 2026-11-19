@@ -36,7 +36,9 @@ export function SidePane({ side, collapsed, onToggle, children }: SidePaneProps)
       >
         <Icon size={18} aria-hidden="true" />
       </button>
-      {!collapsed && <div className="side-pane-content">{children}</div>}
+      <div className="side-pane-content" hidden={collapsed}>
+        {children}
+      </div>
     </aside>
   );
 }

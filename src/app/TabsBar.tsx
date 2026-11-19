@@ -25,7 +25,7 @@ export function TabsBar({ tabs = [], activeId = null, onSelect, onClose, onNew }
           <button
             type="button"
             className="tab-label"
-            aria-current={tab.id === activeId ? "page" : undefined}
+            aria-current={tab.id === activeId ? "true" : undefined}
             onClick={() => onSelect?.(tab.id)}
           >
             {tab.name}

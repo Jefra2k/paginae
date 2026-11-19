@@ -9,7 +9,10 @@ const RECENT_KEY = "files";
 let recentStore: Promise<Store> | null = null;
 
 function recentFilesStore(): Promise<Store> {
-  recentStore ??= load("recent.json", { autoSave: true });
+  recentStore ??= load("recent.json", { autoSave: true }).catch((e: unknown) => {
+    recentStore = null; // let the next call retry
+    throw e;
+  });
   return recentStore;
 }
 
