@@ -2,6 +2,7 @@ use paginae_core::{Bookmark, CoreError, DocId, DocumentInfo, Engine, SearchHit, 
 use tauri::ipc::Response;
 use tauri::path::BaseDirectory;
 use tauri::{Manager, State};
+use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 
 /// Error shape sent to the UI: `kind` selects the translated message,
 /// `message` is the English detail for the log.
@@ -32,7 +33,7 @@ fn file_name(path: &str) -> String {
         .unwrap_or_default()
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn open_document(
     state: State<'_, AppState>,
     path: String,
@@ -61,7 +62,7 @@ fn document_info(state: State<'_, AppState>, id: DocId) -> Result<DocumentInfo, 
 }
 
 /// Returns PNG bytes; the UI receives an `ArrayBuffer`.
-#[tauri::command]
+#[tauri::command(async)]
 fn render_page(
     state: State<'_, AppState>,
     id: DocId,
@@ -78,7 +79,7 @@ fn render_page(
     Ok(Response::new(png))
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn search_document(
     state: State<'_, AppState>,
     id: DocId,
@@ -87,12 +88,12 @@ fn search_document(
     Ok(state.workspace.search(id, &query)?)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn document_bookmarks(state: State<'_, AppState>, id: DocId) -> Result<Vec<Bookmark>, CommandError> {
     Ok(state.workspace.bookmarks(id)?)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn document_has_text(state: State<'_, AppState>, id: DocId) -> Result<bool, CommandError> {
     Ok(state.workspace.has_text(id)?)
 }
@@ -160,7 +161,22 @@ pub fn run() {
                 app.package_info().version,
                 dir.display()
             );
-            let engine = Engine::global(&dir)?;
+            let engine = match Engine::global(&dir) {
+                Ok(engine) => engine,
+                Err(err) => {
+                    log::error!("could not load PDFium from {}: {err}", dir.display());
+                    app.dialog()
+                        .message(
+                            "Paginae konnte den PDF-Motor nicht laden. Bitte Paginae neu installieren.
+
+Paginae could not load its PDF engine. Please reinstall Paginae.",
+                        )
+                        .title("Paginae")
+                        .kind(MessageDialogKind::Error)
+                        .blocking_show();
+                    return Err(err.into());
+                }
+            };
             app.manage(AppState {
                 workspace: Workspace::new(engine),
             });
