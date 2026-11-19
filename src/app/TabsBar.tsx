@@ -4,6 +4,8 @@ import { useTranslation } from "react-i18next";
 export interface TabItem {
   id: number;
   name: string;
+  /** Tooltip, e.g. the full path. */
+  title?: string;
 }
 
 export interface TabsBarProps {
@@ -26,6 +28,7 @@ export function TabsBar({ tabs = [], activeId = null, onSelect, onClose, onNew }
             type="button"
             className="tab-label"
             aria-current={tab.id === activeId ? "true" : undefined}
+            title={tab.title}
             onClick={() => onSelect?.(tab.id)}
           >
             {tab.name}

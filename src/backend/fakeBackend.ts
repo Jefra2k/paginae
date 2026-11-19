@@ -32,6 +32,8 @@ export class FakeBackend implements Backend {
   readonly calls: string[] = [];
   startupPath: string | null = null;
   recent: RecentFile[] = [];
+  /** What the next `pickPdf` returns (null = the user cancelled the dialog). */
+  pickResult: string | null = null;
 
   private readonly fixtures: Record<string, FakeFixture>;
   private readonly docs = new Map<number, OpenDoc>();
@@ -117,7 +119,7 @@ export class FakeBackend implements Backend {
   }
 
   async pickPdf(): Promise<string | null> {
-    return null;
+    return this.pickResult;
   }
 
   async onFilesDropped(handler: (paths: string[]) => void): Promise<() => void> {
