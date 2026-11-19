@@ -5,9 +5,10 @@ import { AppShell } from "./app/AppShell";
 import { Banners } from "./app/Banners";
 import { matchShortcut, type ShortcutAction } from "./app/shortcuts";
 import { StartScreen } from "./app/StartScreen";
-import { errorText, useOpenFiles } from "./app/useOpenFiles";
+import { useOpenFiles } from "./app/useOpenFiles";
 import { useBackend } from "./backend/BackendContext";
 import { PasswordDialog } from "./dialogs/PasswordDialog";
+import { errorText } from "./i18n/errorText";
 import { ReaderToolPane } from "./reader/ReaderToolPane";
 import { DocumentsProvider, nextZoom, useDocuments } from "./state/documents";
 import { DocumentView, ViewerContext, type DocumentViewHandle } from "./viewer/DocumentView";
@@ -21,6 +22,7 @@ function Workbench() {
   const files = useOpenFiles();
   const [caches] = useState(() => createRenderCaches(backend));
   const viewRef = useRef<DocumentViewHandle>(null);
+  const [fitPercent, setFitPercent] = useState<number | null>(null);
 
   useEffect(
     () => () => {
@@ -147,7 +149,7 @@ function Workbench() {
               {active ? (
                 <>
                   <Banners key={`banners-${active.info.id}`} doc={active} />
-                  <DocumentView key={active.info.id} ref={viewRef} doc={active} />
+                  <DocumentView key={active.info.id} ref={viewRef} doc={active} onPercentChange={setFitPercent} />
                 </>
               ) : (
                 <StartScreen
@@ -158,7 +160,7 @@ function Workbench() {
               )}
             </>
           }
-          right={active ? <ReaderToolPane doc={active} /> : null}
+          right={active ? <ReaderToolPane doc={active} fitPercent={fitPercent} /> : null}
         />
         {files.password && (
           <PasswordDialog

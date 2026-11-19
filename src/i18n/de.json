@@ -38,6 +38,7 @@
   },
   "reader": {
     "zoom": "Zoom",
+    "percent": "{{n}} %",
     "fitWidth": "Seitenbreite",
     "fitPage": "Ganze Seite",
     "zoomIn": "Vergrößern",

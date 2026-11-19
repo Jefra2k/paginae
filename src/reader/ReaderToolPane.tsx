@@ -4,12 +4,13 @@ import { nextZoom, useDocuments, type DocState, type ZoomMode } from "../state/d
 import { useViewer } from "../viewer/DocumentView";
 
 /** Tools of the reading mode. This stage: zoom and page navigation; search and bookmarks follow. */
-export function ReaderToolPane({ doc }: { doc: DocState }) {
+export function ReaderToolPane({ doc, fitPercent = null }: { doc: DocState; fitPercent?: number | null }) {
   const { t } = useTranslation();
   const { dispatch } = useDocuments();
   const viewer = useViewer();
   const { info, zoom, currentPage } = doc;
   const setZoom = (next: ZoomMode) => dispatch({ type: "zoomed", id: info.id, zoom: next });
+  const percent = zoom.kind === "percent" ? zoom.value : fitPercent === null ? null : Math.round(fitPercent);
   const step = (direction: 1 | -1) => setZoom(nextZoom(zoom, direction, viewer.effectivePercent()));
 
   return (
@@ -28,7 +29,7 @@ export function ReaderToolPane({ doc }: { doc: DocState }) {
             <ZoomOut size={18} aria-hidden="true" />
           </button>
           <output className="zoom-value" data-testid="zoom-value">
-            {zoom.kind === "percent" ? `${zoom.value} %` : ""}
+            {percent === null ? "" : t("reader.percent", { n: percent })}
           </output>
           <button
             type="button"

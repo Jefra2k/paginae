@@ -19,6 +19,8 @@ const PADDING = 24;
 const GAP = 16;
 /** How far above a page's top edge `scrollToPage` stops. */
 const SCROLL_MARGIN = 8;
+/** Summed wheel delta that makes one zoom step, so a trackpad pinch does not race through all steps. */
+const WHEEL_STEP = 50;
 
 export interface DocumentViewHandle {
   scrollToPage(page: number): void;
@@ -43,7 +45,16 @@ interface Layout {
 }
 
 /** All pages of a document one below the other in a scrollable column. */
-export function DocumentView({ doc, ref }: { doc: DocState; ref?: Ref<DocumentViewHandle> }) {
+export function DocumentView({
+  doc,
+  ref,
+  onPercentChange,
+}: {
+  doc: DocState;
+  ref?: Ref<DocumentViewHandle>;
+  /** Reports the effective zoom percent of the current page whenever it changes. */
+  onPercentChange?: (percent: number) => void;
+}) {
   const { dispatch } = useDocuments();
   const { pages: cache } = useRenderCaches();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -101,6 +112,14 @@ export function DocumentView({ doc, ref }: { doc: DocState; ref?: Ref<DocumentVi
 
   useImperativeHandle(ref, () => ({ scrollToPage, effectivePercent: percentNow }));
 
+  const currentWidth = layout.widths[doc.currentPage] ?? 0;
+  const currentPageInfo = info.pages[doc.currentPage];
+  useEffect(() => {
+    if (onPercentChange && currentPageInfo && currentWidth > 0) {
+      onPercentChange(effectivePercent(currentPageInfo, currentWidth));
+    }
+  }, [onPercentChange, currentPageInfo, currentWidth]);
+
   // When the page size changes (zoom, window size) or the view is mounted again, keep the current page in view.
   const sizeKey = layout.widths.join(",");
   useLayoutEffect(() => {
@@ -138,12 +157,18 @@ export function DocumentView({ doc, ref }: { doc: DocState; ref?: Ref<DocumentVi
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
+    let accumulated = 0;
     const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey && !e.metaKey) return;
       e.preventDefault();
       if (e.deltaY === 0) return;
+      // A change of direction starts the sum afresh.
+      accumulated = Math.sign(accumulated) === Math.sign(e.deltaY) ? accumulated + e.deltaY : e.deltaY;
+      if (Math.abs(accumulated) < WHEEL_STEP) return;
+      const direction = accumulated < 0 ? 1 : -1;
+      accumulated = 0;
       const d = latest.current.doc;
-      dispatch({ type: "zoomed", id: d.info.id, zoom: nextZoom(d.zoom, e.deltaY < 0 ? 1 : -1, percentNow()) });
+      dispatch({ type: "zoomed", id: d.info.id, zoom: nextZoom(d.zoom, direction, percentNow()) });
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { TFunction } from "i18next";
 import { useBackend } from "../backend/BackendContext";
-import { isCommandError, type CommandError, type RecentFile } from "../backend/types";
+import type { CommandError, RecentFile } from "../backend/types";
+import { toCommandError } from "../i18n/errorText";
 import { useDocuments } from "../state/documents";
 
 const MAX_RECENT = 10;
@@ -13,18 +13,6 @@ export interface PasswordRequest {
   attempt: number;
   submit(password: string): void;
   cancel(): void;
-}
-
-export function toCommandError(e: unknown): CommandError {
-  return isCommandError(e) ? e : { kind: "unknown", message: String(e) };
-}
-
-/** The catalog text for an error: `errors.<kind>`, else `errors.unknown` with the message. */
-export function errorText(t: TFunction, error: CommandError): string {
-  const key = `errors.${error.kind}`;
-  return error.kind !== "unknown" && t(key, { defaultValue: "" }) !== ""
-    ? t(key)
-    : t("errors.unknown", { message: error.message });
 }
 
 const isPdf = (path: string) => path.toLowerCase().endsWith(".pdf");
@@ -104,9 +92,15 @@ export function useOpenFiles() {
     [backend, dispatch, askPassword, updateRecent],
   );
 
+  // Opens run one after another, so at most one password prompt is ever waiting for an answer.
+  const queue = useRef<Promise<void>>(Promise.resolve());
   const openPaths = useCallback(
-    async (paths: string[]) => {
-      for (const path of paths) await openOne(path);
+    (paths: string[]): Promise<void> => {
+      const run = queue.current.then(async () => {
+        for (const path of paths) await openOne(path);
+      });
+      queue.current = run.catch(() => {});
+      return run;
     },
     [openOne],
   );

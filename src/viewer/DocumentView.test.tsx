@@ -3,6 +3,7 @@ import type { Dispatch } from "react";
 import { afterEach, beforeEach, expect, test } from "vitest";
 import { BackendProvider } from "../backend/BackendContext";
 import { FakeBackend } from "../backend/fakeBackend";
+import de from "../i18n/de.json";
 import type { PageInfo } from "../backend/types";
 import { initI18n } from "../i18n";
 import { DocumentsProvider, initialState, reducer, useDocuments, type Action } from "../state/documents";
@@ -40,8 +41,17 @@ afterEach(() => {
   }
 });
 
-async function setup({ closeFirst = false } = {}) {
-  const fake = new FakeBackend({ "/a.pdf": { page_count: 3, pages: PAGES } });
+/** Every render fails in the PDF engine. */
+class BrokenRenderer extends FakeBackend {
+  override async renderPage(id: number, pageIndex: number, widthPx: number): Promise<Blob> {
+    this.calls.push(`render:${id}:${pageIndex}:${widthPx}`);
+    throw { kind: "engine", message: "broken page" };
+  }
+}
+
+async function setup({ closeFirst = false, broken = false } = {}) {
+  const fixtures = { "/a.pdf": { page_count: 3, pages: PAGES } };
+  const fake = broken ? new BrokenRenderer(fixtures) : new FakeBackend(fixtures);
   const info = await fake.openDocument("/a.pdf");
   if (closeFirst) await fake.closeDocument(info.id);
   const handle: { dispatch: Dispatch<Action> | null } = { dispatch: null };
@@ -107,6 +117,32 @@ test("ctrl and the mouse wheel zoom in to the next step", async () => {
   fireEvent.wheel(screen.getByTestId("document-view"), { deltaY: -100, ctrlKey: true });
   const width = Math.round(((595.3 * 96) / 72) * 1.5 * window.devicePixelRatio);
   await waitFor(() => expect(fake.calls).toContain(`render:1:0:${width}`));
+});
+
+test("small ctrl+wheel deltas add up before the zoom steps", async () => {
+  const { fake } = await setup();
+  await screen.findAllByTestId("page-image");
+  const view = screen.getByTestId("document-view");
+  const width = Math.round(((595.3 * 96) / 72) * 1.5 * window.devicePixelRatio);
+  fireEvent.wheel(view, { deltaY: -20, ctrlKey: true });
+  fireEvent.wheel(view, { deltaY: -20, ctrlKey: true });
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+  expect(fake.calls).not.toContain(`render:1:0:${width}`);
+  fireEvent.wheel(view, { deltaY: -20, ctrlKey: true }); // 60 in all: one step, to 150 %
+  await waitFor(() => expect(fake.calls).toContain(`render:1:0:${width}`));
+  // A second step would be 200 %; the sum starts again from zero.
+  expect(fake.calls.some((c) => c.endsWith(`:${Math.round(((595.3 * 96) / 72) * 2 * window.devicePixelRatio)}`))).toBe(
+    false,
+  );
+});
+
+test("a render error shows its text on the page", async () => {
+  await setup({ broken: true });
+  const messages = await screen.findAllByText(de.errors.engine);
+  expect(messages).toHaveLength(3);
+  expect(screen.queryAllByTestId("page-image")).toHaveLength(0);
 });
 
 test("scrolling reports the page whose centre is nearest the viewport centre", async () => {

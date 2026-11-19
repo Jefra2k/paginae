@@ -381,9 +381,22 @@ button:focus-visible {
 
 .page-sheet {
   position: relative;
+  display: block;
   flex: none;
   background: var(--paper);
   box-shadow: 0 1px 4px color-mix(in srgb, var(--ink) 25%, transparent);
+}
+
+.page-error {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
 }
 
 .page-image {
@@ -430,6 +443,7 @@ button:focus-visible {
 
 .thumbnail-number {
   position: absolute;
+  display: block;
   right: 4px;
   bottom: 4px;
   padding: 0 4px;
@@ -472,22 +486,18 @@ button:focus-visible {
 }
 
 /* Modal dialogs */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: color-mix(in srgb, var(--ink) 40%, transparent);
-}
-
 .modal {
   width: min(420px, calc(100vw - 32px));
   padding: 20px;
+  border: none;
+  color: var(--ink);
   border-radius: var(--radius);
   background: var(--paper);
   box-shadow: 0 8px 32px color-mix(in srgb, var(--ink) 30%, transparent);
+}
+
+.modal::backdrop {
+  background: color-mix(in srgb, var(--ink) 40%, transparent);
 }
 
 .modal h2 {
