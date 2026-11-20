@@ -38,7 +38,6 @@ export const tauriBackend: Backend = {
   saveRecentFiles: async (files) => {
     await (await recentFilesStore()).set(RECENT_KEY, files);
   },
-  // The two print commands arrive in Task 8; until then these methods exist but are unused.
   printDocument: (id) => invoke<void>("print_document", { id }),
   printWindowReady: () => invoke<void>("print_window_ready"),
 };

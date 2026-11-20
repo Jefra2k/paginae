@@ -1,3 +1,5 @@
+mod print;
+
 use paginae_core::{Bookmark, CoreError, DocId, DocumentInfo, Engine, SearchHit, Workspace};
 use tauri::ipc::Response;
 use tauri::path::BaseDirectory;
@@ -190,7 +192,10 @@ Paginae could not load its PDF engine. Please reinstall Paginae.",
             search_document,
             document_bookmarks,
             document_has_text,
-            startup_file
+            startup_file,
+            print::print_document,
+            print::print_window_ready,
+            print::close_print_window
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

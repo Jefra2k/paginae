@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, Maximize, MoveHorizontal, ZoomIn, ZoomOut } from "lucide-react";
+import { ChevronDown, ChevronUp, Maximize, MoveHorizontal, Printer, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useBackend } from "../backend/BackendContext";
@@ -9,7 +9,7 @@ import { BookmarksPanel } from "./BookmarksPanel";
 import { SearchPanel } from "./SearchPanel";
 import type { SearchApi } from "./useSearch";
 
-/** Tools of the reading mode: zoom and page navigation, search, bookmarks (printing follows). */
+/** Tools of the reading mode: zoom and page navigation, search, bookmarks, printing. */
 export function ReaderToolPane({
   doc,
   fitPercent = null,
@@ -126,6 +126,20 @@ export function ReaderToolPane({
       <section className="tool-section" aria-labelledby="reader-bookmarks-title">
         <h2 id="reader-bookmarks-title">{t("reader.bookmarks")}</h2>
         <BookmarksPanel bookmarks={bookmarks} onGo={(page) => viewer.scrollToPage(page)} />
+      </section>
+      <section className="tool-section" aria-labelledby="reader-print-title">
+        <h2 id="reader-print-title">{t("actions.print")}</h2>
+        <div className="tool-row">
+          <button
+            type="button"
+            className="tool-button"
+            disabled={info.permissions.print === false}
+            onClick={() => void backend.printDocument(info.id)}
+          >
+            <Printer size={16} aria-hidden="true" />
+            <span>{t("actions.print")}</span>
+          </button>
+        </div>
       </section>
     </div>
   );

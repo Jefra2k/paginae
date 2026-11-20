@@ -62,7 +62,8 @@ function Workbench() {
         void files.openPicker();
         return true;
       }
-      if (!active) return false;
+      // Without a document there is nothing to print, but the webview must not print the window either.
+      if (!active) return action === "print";
       const id = active.info.id;
       const lastPage = active.info.page_count - 1;
       switch (action) {
@@ -115,11 +116,11 @@ function Workbench() {
           search.clear();
           return true;
         case "print":
-          // Printing arrives in Task 8; until then the webview must not act on it either.
+          if (active.info.permissions.print !== false) void backend.printDocument(id);
           return true;
       }
     },
-    [active, closeDocument, dispatch, files, search, state.order, viewer],
+    [active, backend, closeDocument, dispatch, files, search, state.order, viewer],
   );
 
   const passwordOpen = files.password !== null;
