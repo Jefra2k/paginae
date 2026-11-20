@@ -11,7 +11,7 @@ import {
 } from "react";
 import type { SearchHit } from "../backend/types";
 import { nextZoom, useDocuments, type DocState } from "../state/documents";
-import { cssPageWidth, effectivePercent } from "./geometry";
+import { cssPageWidth, effectivePercent, leadingDebounce } from "./geometry";
 import { HitOverlay } from "./HitOverlay";
 import { PageImage } from "./PageImage";
 import { useRenderCaches } from "./RenderCache";
@@ -72,16 +72,18 @@ export function DocumentView({
   useLayoutEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    const measure = () =>
-      setViewport((v) =>
-        v.width === el.clientWidth && v.height === el.clientHeight
-          ? v
-          : { width: el.clientWidth, height: el.clientHeight },
-      );
+    const commit = (width: number, height: number) =>
+      setViewport((v) => (v.width === width && v.height === height ? v : { width, height }));
+    // The first measurement commits at once; a resize drag settles for 100 ms before pages re-render.
+    const debounced = leadingDebounce(commit, 100);
+    const measure = () => debounced(el.clientWidth, el.clientHeight);
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      debounced.cancel();
+    };
   }, []);
 
   const layout = useMemo<Layout>(() => {
@@ -199,7 +201,7 @@ export function DocumentView({
     >
       <div className="document-pages" style={{ padding: `${PADDING}px`, gap: `${GAP}px` }}>
         {info.pages.map((page, i) => (
-          <PageImage key={page.index} docId={id} page={page} cssWidth={layout.widths[i]} cache={cache}>
+          <PageImage key={page.index} docId={id} page={page} cssWidth={layout.widths[i]} cache={cache} quantize>
             {hits.length > 0 && (
               <HitOverlay hits={hits} page={page} cssWidth={layout.widths[i]} currentKey={String(currentHit)} />
             )}

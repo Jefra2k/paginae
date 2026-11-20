@@ -1,6 +1,14 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import type { PageInfo, RectPt } from "../backend/types";
-import { cssPageWidth, effectivePercent, PX_PER_PT, rectPtToCss, renderWidthFor } from "./geometry";
+import {
+  cssPageWidth,
+  effectivePercent,
+  leadingDebounce,
+  PX_PER_PT,
+  quantizeRenderWidth,
+  rectPtToCss,
+  renderWidthFor,
+} from "./geometry";
 
 const A4: PageInfo = { index: 0, width_pt: 595.3, height_pt: 841.9, rotation: 0 };
 const VIEWPORT = { width: 1048, height: 800 };
@@ -33,6 +41,37 @@ test("effectivePercent inverts percent zoom", () => {
 test("renderWidthFor scales by the device pixel ratio and caps at 8000", () => {
   expect(renderWidthFor(1000, 2)).toBe(2000);
   expect(renderWidthFor(5000, 2)).toBe(8000);
+});
+
+test("quantizeRenderWidth rounds up to multiples of 64 and caps at 8000", () => {
+  expect(quantizeRenderWidth(1)).toBe(64);
+  expect(quantizeRenderWidth(64)).toBe(64);
+  expect(quantizeRenderWidth(65)).toBe(128);
+  expect(quantizeRenderWidth(1000)).toBe(1024);
+  expect(quantizeRenderWidth(1001)).toBe(1024);
+  expect(quantizeRenderWidth(7990)).toBe(8000);
+  expect(quantizeRenderWidth(50_000)).toBe(8000);
+});
+
+test("leadingDebounce commits the first call at once and collapses rapid later ones into one", () => {
+  vi.useFakeTimers();
+  try {
+    const commit = vi.fn();
+    const call = leadingDebounce(commit, 100);
+    call(800);
+    expect(commit).toHaveBeenCalledTimes(1);
+    call(801);
+    vi.advanceTimersByTime(40);
+    call(802);
+    vi.advanceTimersByTime(40);
+    call(803);
+    expect(commit).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(100);
+    expect(commit).toHaveBeenCalledTimes(2);
+    expect(commit).toHaveBeenLastCalledWith(803);
+  } finally {
+    vi.useRealTimers();
+  }
 });
 
 test("rectPtToCss on an upright page flips the y axis", () => {

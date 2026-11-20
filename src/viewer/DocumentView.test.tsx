@@ -8,6 +8,7 @@ import type { PageInfo } from "../backend/types";
 import { initI18n } from "../i18n";
 import { DocumentsProvider, initialState, reducer, useDocuments, type Action } from "../state/documents";
 import { DocumentView } from "./DocumentView";
+import { quantizeRenderWidth } from "./geometry";
 import { createRenderCaches, RenderCachesContext } from "./RenderCache";
 
 const A4 = { width_pt: 595.3, height_pt: 841.9, rotation: 0 };
@@ -98,14 +99,14 @@ test("loads every page as a blob image", async () => {
   for (const image of images) expect(image.getAttribute("src")).toMatch(/^blob:/);
   expect(images[0]).toHaveAttribute("alt", "Seite 1");
   expect(images[0]).toHaveAttribute("draggable", "false");
-  expect(fake.calls).toContain("render:1:0:1000");
+  expect(fake.calls).toContain("render:1:0:1024");
 });
 
 test("zooming to 200 percent requests the matching render width", async () => {
   const { fake, dispatch } = await setup();
   await screen.findAllByTestId("page-image");
   dispatch({ type: "zoomed", id: 1, zoom: { kind: "percent", value: 200 } });
-  const width = Math.round(((595.3 * 96) / 72) * 2 * window.devicePixelRatio);
+  const width = quantizeRenderWidth(Math.round(((595.3 * 96) / 72) * 2 * window.devicePixelRatio));
   await waitFor(() => expect(fake.calls).toContain(`render:1:0:${width}`));
   expect(screen.getAllByTestId("page-placeholder")[0].style.width).toBe(`${Math.round((595.3 * 96) / 72 * 2)}px`);
 });
@@ -115,7 +116,7 @@ test("ctrl and the mouse wheel zoom in to the next step", async () => {
   await screen.findAllByTestId("page-image");
   // fit width is 1000 px = 126 %, the next step up is 150 %.
   fireEvent.wheel(screen.getByTestId("document-view"), { deltaY: -100, ctrlKey: true });
-  const width = Math.round(((595.3 * 96) / 72) * 1.5 * window.devicePixelRatio);
+  const width = quantizeRenderWidth(Math.round(((595.3 * 96) / 72) * 1.5 * window.devicePixelRatio));
   await waitFor(() => expect(fake.calls).toContain(`render:1:0:${width}`));
 });
 
@@ -123,7 +124,7 @@ test("small ctrl+wheel deltas add up before the zoom steps", async () => {
   const { fake } = await setup();
   await screen.findAllByTestId("page-image");
   const view = screen.getByTestId("document-view");
-  const width = Math.round(((595.3 * 96) / 72) * 1.5 * window.devicePixelRatio);
+  const width = quantizeRenderWidth(Math.round(((595.3 * 96) / 72) * 1.5 * window.devicePixelRatio));
   fireEvent.wheel(view, { deltaY: -20, ctrlKey: true });
   fireEvent.wheel(view, { deltaY: -20, ctrlKey: true });
   await act(async () => {
@@ -133,7 +134,7 @@ test("small ctrl+wheel deltas add up before the zoom steps", async () => {
   fireEvent.wheel(view, { deltaY: -20, ctrlKey: true }); // 60 in all: one step, to 150 %
   await waitFor(() => expect(fake.calls).toContain(`render:1:0:${width}`));
   // A second step would be 200 %; the sum starts again from zero.
-  expect(fake.calls.some((c) => c.endsWith(`:${Math.round(((595.3 * 96) / 72) * 2 * window.devicePixelRatio)}`))).toBe(
+  expect(fake.calls.some((c) => c.endsWith(`:${quantizeRenderWidth(Math.round(((595.3 * 96) / 72) * 2 * window.devicePixelRatio))}`))).toBe(
     false,
   );
 });
@@ -161,7 +162,7 @@ test("scrolling reports the page whose centre is nearest the viewport centre", a
 
 test("a render for a closed document fails quietly", async () => {
   const { fake } = await setup({ closeFirst: true });
-  await waitFor(() => expect(fake.calls).toContain("render:1:2:1000"));
+  await waitFor(() => expect(fake.calls).toContain("render:1:2:1024"));
   await act(async () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
   });

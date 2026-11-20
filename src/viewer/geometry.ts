@@ -80,3 +80,31 @@ export function rectPtToCss(
     height: (Math.max(...ys) - top) * scale,
   };
 }
+
+/** Bitmap widths requested for the screen are multiples of this; CSS scales the remainder. */
+export const RENDER_WIDTH_STEP = 64;
+
+/** Rounds a bitmap width up to the next multiple of 64 (never blurrier than asked), capped at 8000 (itself a multiple). */
+export function quantizeRenderWidth(renderWidth: number): number {
+  return Math.min(MAX_RENDER_WIDTH, Math.ceil(renderWidth / RENDER_WIDTH_STEP) * RENDER_WIDTH_STEP);
+}
+
+/**
+ * Wraps `commit` so the first call goes through at once (the initial measurement must not wait) and later
+ * calls are collapsed into one trailing call `delayMs` after the last of them. `cancel` drops a pending call.
+ */
+export function leadingDebounce<A extends unknown[]>(commit: (...args: A) => void, delayMs: number) {
+  let first = true;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const call = (...args: A) => {
+    if (first) {
+      first = false;
+      commit(...args);
+      return;
+    }
+    clearTimeout(timer);
+    timer = setTimeout(() => commit(...args), delayMs);
+  };
+  call.cancel = () => clearTimeout(timer);
+  return call;
+}

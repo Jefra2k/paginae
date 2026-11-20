@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { isCommandError, type CommandError, type PageInfo } from "../backend/types";
 import { errorText, toCommandError } from "../i18n/errorText";
-import { renderWidthFor } from "./geometry";
+import { quantizeRenderWidth, renderWidthFor } from "./geometry";
 import type { RenderCache } from "./RenderCache";
 
 export interface PageImageProps {
@@ -10,12 +10,14 @@ export interface PageImageProps {
   page: PageInfo;
   cssWidth: number;
   cache: RenderCache;
+  /** Round the bitmap width up to a multiple of 64 so a resize drag reuses cached bitmaps (main view only). */
+  quantize?: boolean;
   onVisible?: (pageIndex: number) => void;
   children?: ReactNode;
 }
 
 /** A page-sized sheet (a block `span`, so it may sit inside a button) that loads its bitmap only while it is (nearly) visible. */
-export function PageImage({ docId, page, cssWidth, cache, onVisible, children }: PageImageProps) {
+export function PageImage({ docId, page, cssWidth, cache, quantize = false, onVisible, children }: PageImageProps) {
   const { t } = useTranslation();
   const sheetRef = useRef<HTMLSpanElement>(null);
   const onVisibleRef = useRef(onVisible);
@@ -26,7 +28,8 @@ export function PageImage({ docId, page, cssWidth, cache, onVisible, children }:
 
   const width = Math.round(cssWidth);
   const height = Math.round((cssWidth * page.height_pt) / page.width_pt);
-  const renderWidth = cssWidth > 0 ? renderWidthFor(cssWidth, window.devicePixelRatio || 1) : 0;
+  const exactWidth = cssWidth > 0 ? renderWidthFor(cssWidth, window.devicePixelRatio || 1) : 0;
+  const renderWidth = quantize && exactWidth > 0 ? quantizeRenderWidth(exactWidth) : exactWidth;
 
   useEffect(() => {
     const sheet = sheetRef.current;
