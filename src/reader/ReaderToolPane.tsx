@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useBackend } from "../backend/BackendContext";
 import type { Bookmark } from "../backend/types";
+import { startPrint } from "../print/startPrint";
 import { nextZoom, useDocuments, type DocState, type ZoomMode } from "../state/documents";
 import { useViewer } from "../viewer/DocumentView";
 import { BookmarksPanel } from "./BookmarksPanel";
@@ -134,7 +135,7 @@ export function ReaderToolPane({
             type="button"
             className="tool-button"
             disabled={info.permissions.print === false}
-            onClick={() => void backend.printDocument(info.id)}
+            onClick={() => startPrint(backend, info.id)}
           >
             <Printer size={16} aria-hidden="true" />
             <span>{t("actions.print")}</span>

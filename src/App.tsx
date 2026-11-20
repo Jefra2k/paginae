@@ -6,6 +6,7 @@ import { Banners } from "./app/Banners";
 import { matchShortcut, type ShortcutAction } from "./app/shortcuts";
 import { StartScreen } from "./app/StartScreen";
 import { useOpenFiles } from "./app/useOpenFiles";
+import { startPrint } from "./print/startPrint";
 import { useBackend } from "./backend/BackendContext";
 import { PasswordDialog } from "./dialogs/PasswordDialog";
 import { errorText } from "./i18n/errorText";
@@ -116,7 +117,7 @@ function Workbench() {
           search.clear();
           return true;
         case "print":
-          if (active.info.permissions.print !== false) void backend.printDocument(id);
+          if (active.info.permissions.print !== false) startPrint(backend, id);
           return true;
       }
     },

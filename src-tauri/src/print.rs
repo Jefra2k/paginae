@@ -15,12 +15,21 @@ fn failed(err: tauri::Error) -> CommandError {
     }
 }
 
-/// Opens the print window for a document. A window that is still open (an earlier print was neither
-/// finished nor cancelled) is closed first, so the new one always shows the requested document.
+/// Opens the print window for a document. A window that is still open is reused, never recreated (a
+/// destroyed window's label is only freed on the event loop): it is focused if it already shows this
+/// document, otherwise navigated to the new one.
 #[tauri::command(async)]
 pub fn print_document(app: AppHandle, id: DocId) -> Result<(), CommandError> {
-    if let Some(old) = app.get_webview_window(PRINT_LABEL) {
-        old.destroy().map_err(failed)?;
+    if let Some(window) = app.get_webview_window(PRINT_LABEL) {
+        let wanted = format!("id={id}");
+        let mut url = window.url().map_err(failed)?;
+        if url.query() != Some(wanted.as_str()) {
+            url.set_query(Some(&wanted));
+            window.navigate(url).map_err(failed)?;
+        }
+        window.set_focus().map_err(failed)?;
+        log::info!("print window reused for document {id}");
+        return Ok(());
     }
     WebviewWindowBuilder::new(
         &app,
@@ -40,7 +49,7 @@ pub fn print_document(app: AppHandle, id: DocId) -> Result<(), CommandError> {
 #[tauri::command(async)]
 pub fn print_window_ready(app: AppHandle) -> Result<(), CommandError> {
     let window = app.get_webview_window(PRINT_LABEL).ok_or_else(|| CommandError {
-        kind: "unknown_document",
+        kind: "engine",
         message: "the print window is not open".to_string(),
     })?;
     log::info!("print window ready, opening the system print dialog");

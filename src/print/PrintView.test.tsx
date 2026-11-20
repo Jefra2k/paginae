@@ -13,12 +13,15 @@ const srcDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype
 let imagesLoad = true;
 /** What the fake printWindowReady saw: how many images had loaded by then. */
 let loadedWhenReady = -1;
+/** Load events the images have actually handled so far. */
+let loadEvents = 0;
 
 beforeEach(() => {
   initI18n("de");
   imagesLoad = true;
   loadedWhenReady = -1;
-  // jsdom never loads images: fire `load` synchronously after the src assignment.
+  loadEvents = 0;
+  // jsdom never loads images: fire `load` (counted) shortly after the src assignment.
   Object.defineProperty(HTMLImageElement.prototype, "src", {
     configurable: true,
     get(this: HTMLImageElement) {
@@ -26,8 +29,8 @@ beforeEach(() => {
     },
     set(this: HTMLImageElement, value: string) {
       this.setAttribute("src", value);
-      this.dataset.loaded = "";
-      if (imagesLoad) this.dispatchEvent(new Event("load"));
+      this.addEventListener("load", () => loadEvents++, { once: true });
+      if (imagesLoad) setTimeout(() => this.dispatchEvent(new Event("load")), 0);
     },
   });
 });
@@ -59,7 +62,7 @@ test("asks the shell to print exactly once, after all three images have loaded",
   const { fake } = await setup((f) => {
     const original = f.printWindowReady.bind(f);
     f.printWindowReady = () => {
-      loadedWhenReady = document.querySelectorAll("img[data-loaded]").length;
+      loadedWhenReady = loadEvents;
       return original();
     };
   });
