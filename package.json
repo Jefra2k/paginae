@@ -14,7 +14,8 @@
     "check:licenses": "node scripts/check-licenses.mjs",
     "check:network": "node scripts/check-network-deps.mjs",
     "e2e": "wdio run wdio.conf.ts",
-    "e2e:clean": "node scripts/enable-e2e-capability.mjs --remove"
+    "e2e:clean": "node scripts/enable-e2e-capability.mjs --remove",
+    "licenses:report": "node scripts/third-party-report.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

@@ -44,6 +44,8 @@ Run `npm run e2e:clean` afterwards (it deletes `src-tauri/capabilities/e2e.json`
 - `src-tauri`: the Tauri 2 desktop shell (Rust commands, window, bundling)
 - `src`: the React and TypeScript user interface
 
+How the layers fit together is described in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
 ## License
 
-MIT, see [LICENSE](LICENSE). Third-party components are listed in [docs/THIRD-PARTY.md](docs/THIRD-PARTY.md).
+MIT, see [LICENSE](LICENSE). Third-party components are listed in [docs/THIRD-PARTY.md](docs/THIRD-PARTY.md) (generated with `npm run licenses:report`).
