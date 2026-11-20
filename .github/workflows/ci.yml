@@ -1,0 +1,113 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ runner.os == 'macOS' && 'aarch64-apple-darwin' || '' }}
+      - uses: swatinem/rust-cache@v2
+      - run: npm ci
+      - run: npm run fetch:pdfium
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+      - run: npx tsc --noEmit
+      - run: npm test
+      - run: npm run check:licenses
+      - run: npm run check:network
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        run: npm run tauri build
+      - name: Build (macOS)
+        if: runner.os == 'macOS'
+        run: npm run tauri build -- --target aarch64-apple-darwin
+      - name: Upload installer (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: paginae-windows
+          path: target/**/bundle/nsis/*.exe
+      - name: Upload installer (macOS)
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: paginae-macos
+          path: "**/bundle/dmg/*.dmg"
+
+  licenses-rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check licenses bans
+
+  e2e:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    # The macOS run is a throwaway attempt (see design); the Windows run is mandatory.
+    continue-on-error: ${{ matrix.os == 'macos-latest' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ runner.os == 'macOS' && 'aarch64-apple-darwin' || '' }}
+      - uses: swatinem/rust-cache@v2
+      - run: npm ci
+      - run: npm run fetch:pdfium
+      - name: Create fixture
+        run: |
+          mkdir -p e2e/.tmp
+          cargo run -p paginae-core --example make_fixture -- e2e/.tmp/fixture.pdf
+      - name: Build app (Windows)
+        if: runner.os == 'Windows'
+        run: npm run tauri build -- --no-bundle
+      - name: Build app (macOS, with WebDriver plugin)
+        if: runner.os == 'macOS'
+        run: |
+          node scripts/enable-e2e-capability.mjs
+          npm run tauri build -- --no-bundle --target aarch64-apple-darwin -- --features e2e
+      - name: Run end-to-end test (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        env:
+          PAGINAE_BIN: ${{ github.workspace }}\target\release\paginae.exe
+          PAGINAE_OPEN: ${{ github.workspace }}\e2e\.tmp\fixture.pdf
+        run: npm run e2e
+      - name: Run end-to-end test (macOS)
+        if: runner.os == 'macOS'
+        env:
+          PAGINAE_BIN: ${{ github.workspace }}/target/aarch64-apple-darwin/release/paginae
+          PAGINAE_OPEN: ${{ github.workspace }}/e2e/.tmp/fixture.pdf
+        run: npm run e2e
+      - name: Upload e2e logs
+        if: always() && runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-logs-macos
+          path: e2e/logs/**
+          if-no-files-found: ignore

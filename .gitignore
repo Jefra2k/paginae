@@ -32,3 +32,4 @@ resources/pdfium/LICENSE-pdfium-binaries.txt
 src-tauri/gen/schemas/
 src-tauri/capabilities/e2e.json
 e2e/.tmp/
+e2e/logs/
