@@ -83,14 +83,15 @@ export function PrintView({ backend, docId, onClose }: { backend: Backend; docId
         </button>
       </div>
       {pages.map((page) => (
-        <img
-          key={page.index}
-          className="print-page"
-          data-testid="print-page"
-          src={page.url}
-          alt={t("thumbnails.page", { n: page.index + 1 })}
-          onLoad={() => setLoaded((n) => n + 1)}
-        />
+        <div key={page.index} className="print-sheet" data-testid="print-sheet">
+          <img
+            className="print-page"
+            data-testid="print-page"
+            src={page.url}
+            alt={t("thumbnails.page", { n: page.index + 1 })}
+            onLoad={() => setLoaded((n) => n + 1)}
+          />
+        </div>
       ))}
     </main>
   );

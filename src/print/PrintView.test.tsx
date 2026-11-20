@@ -48,6 +48,18 @@ async function setup(backendOverride?: (fake: FakeBackend) => void) {
   return { fake, onClose, id: info.id };
 }
 
+test("wraps every page image in its own sheet box", async () => {
+  await setup();
+  await waitFor(() => expect(screen.getAllByTestId("print-page")).toHaveLength(3));
+  const sheets = screen.getAllByTestId("print-sheet");
+  expect(sheets).toHaveLength(3);
+  for (const sheet of sheets) {
+    expect(sheet.className).toBe("print-sheet");
+    expect(sheet.children).toHaveLength(1);
+    expect(sheet.firstElementChild?.getAttribute("data-testid")).toBe("print-page");
+  }
+});
+
 test("renders every page at 300 dpi in page order", async () => {
   const { fake, id } = await setup();
   await waitFor(() => expect(screen.getAllByTestId("print-page")).toHaveLength(3));
