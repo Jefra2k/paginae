@@ -1,5 +1,7 @@
 // End-to-end tests: WebDriver against the real Paginae binary (see README, "Tests").
 // PAGINAE_BIN  path of the built app; PAGINAE_OPEN  PDF the app opens at start-up.
+// The app is built with `--features e2e` so that it carries its own WebDriver server
+// (tauri-plugin-wdio-webdriver): no external driver, same path on Windows and macOS.
 export const config = {
   runner: "local",
   specs: ["./e2e/specs/**/*.spec.ts"],
@@ -10,12 +12,7 @@ export const config = {
   services: [
     [
       "@wdio/tauri-service",
-      {
-        appBinaryPath: process.env.PAGINAE_BIN,
-        driverProvider: process.platform === "darwin" ? "embedded" : "official",
-        // "official" drives tauri-driver, which is not preinstalled: build it on first use.
-        autoInstallTauriDriver: true,
-      },
+      { appBinaryPath: process.env.PAGINAE_BIN, driverProvider: "embedded" },
     ],
   ],
   framework: "mocha",

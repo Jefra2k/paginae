@@ -81,19 +81,16 @@ jobs:
         run: |
           mkdir -p e2e/.tmp
           cargo run -p paginae-core --example make_fixture -- e2e/.tmp/fixture.pdf
-      - name: Build app (Windows)
+      - name: Build app (Windows, with WebDriver plugin)
         if: runner.os == 'Windows'
-        run: npm run tauri build -- --no-bundle
+        run: |
+          node scripts/enable-e2e-capability.mjs
+          npm run tauri build -- --no-bundle -- --features e2e
       - name: Build app (macOS, with WebDriver plugin)
         if: runner.os == 'macOS'
         run: |
           node scripts/enable-e2e-capability.mjs
           npm run tauri build -- --no-bundle --target aarch64-apple-darwin -- --features e2e
-      - name: Use the preinstalled Edge WebDriver (Windows)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        # The service's own driver download fails on the runner (Windows PowerShell 5.1).
-        run: Add-Content -Path $env:GITHUB_PATH -Value $env:EdgeWebDriver
       - name: Run end-to-end test (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
