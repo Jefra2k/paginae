@@ -29,7 +29,7 @@ PDF space is in points (1/72 inch) with the origin at the **bottom left**; CSS s
 
 `Engine` (`crates/paginae-core/src/engine.rs`) binds the PDFium library once; `Engine::global` returns the same instance on every call, because pdfium-render binds a process at most once. PDFium is not thread-safe; pdfium-render's `thread_safe` feature serialises every call behind a mutex, so one `Engine` and one `Workspace` (managed state `AppState`) are shared by all command threads. The library is found as a bundled resource, or in debug builds under `resources/pdfium/<platform>` (fetched by `scripts/fetch-pdfium.mjs` with a pinned version and SHA-256). If it cannot be loaded, the shell shows a native error dialog and exits.
 
-## Windows
+## Application windows
 
 The main window loads `index.html`. Printing opens a second window (label `print`, `src/print`, `print.html`, capability `src-tauri/capabilities/print.json`): it renders every page as a 300 dpi bitmap, calls `print_window_ready`, which opens the system print dialog, and `close_print_window` ends it. An open print window is reused for the next print job.
 
