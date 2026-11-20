@@ -36,7 +36,7 @@ $env:PAGINAE_OPEN = "$PWD\e2e\.tmp\fixture.pdf"
 npm run e2e
 ```
 
-Delete `src-tauri/capabilities/e2e.json` afterwards: with that file present, a normal build fails, because the plugin it names is not compiled in.
+Run `npm run e2e:clean` afterwards (it deletes `src-tauri/capabilities/e2e.json`): while that file exists, `cargo test`, `cargo clippy`, `tauri dev` and `tauri build` all fail, because tauri-build validates the capability and the plugin it names is not compiled in.
 
 ## Structure
 
