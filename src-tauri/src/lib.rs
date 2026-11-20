@@ -53,12 +53,12 @@ fn open_document(
     Ok(info)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn close_document(state: State<'_, AppState>, id: DocId) -> Result<(), CommandError> {
     Ok(state.workspace.close(id)?)
 }
 
-#[tauri::command]
+#[tauri::command(async)]
 fn document_info(state: State<'_, AppState>, id: DocId) -> Result<DocumentInfo, CommandError> {
     Ok(state.workspace.info(id)?)
 }
@@ -101,27 +101,27 @@ fn document_has_text(state: State<'_, AppState>, id: DocId) -> Result<bool, Comm
 }
 
 /// File to open at start-up (`PAGINAE_OPEN`), used by end-to-end tests.
-#[tauri::command]
+#[tauri::command(async)]
 fn startup_file() -> Option<String> {
     std::env::var("PAGINAE_OPEN").ok().filter(|p| !p.is_empty())
 }
 
 /// Directory holding the PDFium library: the bundled resource, or in debug
 /// builds the workspace copy under `resources/pdfium/<platform>`.
-fn pdfium_dir(app: &tauri::App) -> std::path::PathBuf {
+fn pdfium_dir(app: &tauri::App) -> (std::path::PathBuf, &'static str) {
     let bundled = app
         .path()
         .resolve("pdfium", BaseDirectory::Resource)
         .unwrap_or_default();
     if bundled.join(libname()).exists() {
-        return bundled;
+        return (bundled, "bundled");
     }
     #[cfg(debug_assertions)]
     {
-        return paginae_core::default_library_dir();
+        return (paginae_core::default_library_dir(), "dev");
     }
     #[allow(unreachable_code)]
-    bundled
+    (bundled, "bundled")
 }
 
 fn libname() -> &'static str {
@@ -157,21 +157,23 @@ pub fn run() {
     let builder = builder.plugin(tauri_plugin_wdio_webdriver::init());
     builder
         .setup(|app| {
-            let dir = pdfium_dir(app);
+            // Only the kind of location is logged, never the path (it holds the user name).
+            let (dir, source) = pdfium_dir(app);
             log::info!(
-                "Paginae {} starting, PDFium from {}",
-                app.package_info().version,
-                dir.display()
+                "Paginae {} starting, PDFium ({source})",
+                app.package_info().version
             );
             let engine = match Engine::global(&dir) {
                 Ok(engine) => engine,
                 Err(err) => {
-                    log::error!("could not load PDFium from {}: {err}", dir.display());
+                    log::error!("could not load PDFium ({source}): {err}");
                     app.dialog()
                         .message(
                             "Paginae konnte den PDF-Motor nicht laden. Bitte Paginae neu installieren.
 
-Paginae could not load its PDF engine. Please reinstall Paginae.",
+Paginae could not load its PDF engine. Please reinstall Paginae.
+
+Paginae n'a pas pu charger son moteur PDF. Veuillez réinstaller Paginae.",
                         )
                         .title("Paginae")
                         .kind(MessageDialogKind::Error)

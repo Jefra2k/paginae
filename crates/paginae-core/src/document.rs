@@ -1,9 +1,10 @@
 use std::collections::HashMap;
-use std::io::Cursor;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicU32, Ordering};
 
+use image::codecs::png::{CompressionType, FilterType, PngEncoder};
+use image::{ExtendedColorType, ImageEncoder};
 use pdfium_render::prelude::*;
 use serde::Serialize;
 
@@ -186,12 +187,17 @@ impl Workspace {
                 .render_form_data(true)
                 .render_annotations(true);
             let image = page.render_with_config(&config)?.as_image()?;
-            let mut png = Cursor::new(Vec::new());
-            image
-                .into_rgba8()
-                .write_to(&mut png, image::ImageFormat::Png)
+            let rgba = image.into_rgba8();
+            let mut png = Vec::new();
+            PngEncoder::new_with_quality(&mut png, CompressionType::Fast, FilterType::NoFilter)
+                .write_image(
+                    rgba.as_raw(),
+                    rgba.width(),
+                    rgba.height(),
+                    ExtendedColorType::Rgba8,
+                )
                 .map_err(|e| CoreError::Engine(format!("PNG encoding failed: {e}")))?;
-            Ok(png.into_inner())
+            Ok(png)
         })
     }
 
@@ -238,13 +244,13 @@ impl Workspace {
 
     pub fn bookmarks(&self, id: DocId) -> Result<Vec<Bookmark>, CoreError> {
         self.with_doc(id, |doc| {
-            let mut out = Vec::new();
-            let mut current = doc.pdf.bookmarks().root();
-            while let Some(b) = current {
-                out.push(bookmark_tree(&b));
-                current = b.next_sibling();
-            }
-            Ok(out)
+            let mut budget = MAX_BOOKMARK_NODES;
+            Ok(walk_outline(
+                doc.pdf.bookmarks().root(),
+                0,
+                &mut budget,
+                &bookmark_node,
+            ))
         })
     }
 
@@ -259,21 +265,51 @@ impl Workspace {
     }
 }
 
-fn bookmark_tree(bookmark: &PdfBookmark<'_>) -> Bookmark {
-    let mut children = Vec::new();
-    let mut child = bookmark.first_child();
-    while let Some(c) = child {
-        children.push(bookmark_tree(&c));
-        child = c.next_sibling();
+/// A malformed outline may loop or nest without end; the walk stops silently at these caps.
+const MAX_BOOKMARK_DEPTH: usize = 64;
+const MAX_BOOKMARK_NODES: usize = 10_000;
+
+/// One bookmark without its children, plus its first child and next sibling.
+fn bookmark_node<'a>(
+    bookmark: &PdfBookmark<'a>,
+) -> (Bookmark, Option<PdfBookmark<'a>>, Option<PdfBookmark<'a>>) {
+    (
+        Bookmark {
+            title: bookmark.title().unwrap_or_default(),
+            page_index: bookmark
+                .destination()
+                .and_then(|d| d.page_index().ok())
+                .map(|i| i as u32),
+            children: Vec::new(),
+        },
+        bookmark.first_child(),
+        bookmark.next_sibling(),
+    )
+}
+
+/// Collects `first` and its following siblings with their subtrees, within the depth and node caps.
+fn walk_outline<N>(
+    first: Option<N>,
+    depth: usize,
+    budget: &mut usize,
+    node: &impl Fn(&N) -> (Bookmark, Option<N>, Option<N>),
+) -> Vec<Bookmark> {
+    let mut out = Vec::new();
+    if depth >= MAX_BOOKMARK_DEPTH {
+        return out;
     }
-    Bookmark {
-        title: bookmark.title().unwrap_or_default(),
-        page_index: bookmark
-            .destination()
-            .and_then(|d| d.page_index().ok())
-            .map(|i| i as u32),
-        children,
+    let mut current = first;
+    while let Some(n) = current {
+        if *budget == 0 {
+            break;
+        }
+        *budget -= 1;
+        let (mut bookmark, child, next) = node(&n);
+        bookmark.children = walk_outline(child, depth + 1, budget, node);
+        out.push(bookmark);
+        current = next;
     }
+    out
 }
 
 fn get_page<'a>(pdf: &'a PdfDocument<'static>, page_index: u32) -> Result<PdfPage<'a>, CoreError> {
@@ -338,4 +374,46 @@ fn describe(id: DocId, doc: &OpenDocument) -> Result<DocumentInfo, CoreError> {
         permissions,
         encrypted: doc.encrypted,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn leaf() -> Bookmark {
+        Bookmark {
+            title: String::new(),
+            page_index: None,
+            children: Vec::new(),
+        }
+    }
+
+    fn depth_of(list: &[Bookmark]) -> usize {
+        list.iter().map(|b| 1 + depth_of(&b.children)).max().unwrap_or(0)
+    }
+
+    fn count(list: &[Bookmark]) -> usize {
+        list.iter().map(|b| 1 + count(&b.children)).sum()
+    }
+
+    #[test]
+    fn outline_whose_child_is_itself_stops_at_the_depth_cap() {
+        let mut budget = MAX_BOOKMARK_NODES;
+        let tree = walk_outline(Some(0_u8), 0, &mut budget, &|_| (leaf(), Some(0), None));
+        assert_eq!(depth_of(&tree), MAX_BOOKMARK_DEPTH);
+    }
+
+    #[test]
+    fn outline_whose_sibling_is_itself_stops_at_the_node_cap() {
+        let mut budget = MAX_BOOKMARK_NODES;
+        let tree = walk_outline(Some(0_u8), 0, &mut budget, &|_| (leaf(), None, Some(0)));
+        assert_eq!(count(&tree), MAX_BOOKMARK_NODES);
+    }
+
+    #[test]
+    fn wide_and_deep_cycle_never_exceeds_the_shared_node_budget() {
+        let mut budget = MAX_BOOKMARK_NODES;
+        let tree = walk_outline(Some(0_u8), 0, &mut budget, &|_| (leaf(), Some(0), Some(0)));
+        assert!(count(&tree) <= MAX_BOOKMARK_NODES);
+    }
 }

@@ -15,6 +15,10 @@ const FIXED = [
   ["pdfium-binaries", "chromium/8165", "MIT", "Prebuilt PDFium libraries for Windows and macOS (bblanchon)", "shipped"],
 ];
 
+// Pulled in by tauri for Android/iOS only; never compiled into the desktop build.
+const MOBILE_ONLY = new Set(["reqwest", "hyper", "hyper-util"]);
+const MOBILE_NOTE = "(mobile targets only, not in the desktop build)";
+
 const meta = JSON.parse(
   execFileSync("cargo", ["metadata", "--format-version", "1", "--locked"], { cwd: root, encoding: "utf8", maxBuffer }),
 );
@@ -22,7 +26,7 @@ const members = new Set(meta.workspace_members);
 const rust = new Map();
 for (const p of meta.packages) {
   if (members.has(p.id)) continue;
-  rust.set(`${p.name}@${p.version}`, [p.name, p.version, p.license ?? "(none declared)", "Rust crate", "shipped"]);
+  rust.set(`${p.name}@${p.version}`, [p.name, p.version, p.license ?? "(none declared)", MOBILE_ONLY.has(p.name) ? `Rust crate ${MOBILE_NOTE}` : "Rust crate", "shipped"]);
 }
 
 const bin = join(root, "node_modules", "license-checker-rseidelsohn", "bin", "license-checker-rseidelsohn.js");

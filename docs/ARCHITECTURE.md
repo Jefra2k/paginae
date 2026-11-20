@@ -12,7 +12,7 @@ Paginae is a desktop PDF tool in three layers. Stage 1 only reads documents; not
 
 1. The viewer asks its `RenderCache` (`src/viewer/RenderCache.ts`), which calls `Backend.renderPage(id, pageIndex, widthPx)` for pages it does not hold yet.
 2. `tauriBackend` calls `invoke("render_page", { id, pageIndex, widthPx })`.
-3. The command `render_page` in `src-tauri/src/lib.rs` runs on a worker thread (`#[tauri::command(async)]`, otherwise the UI freezes while PDFium renders) and calls `Workspace::render_png`.
+3. The command `render_page` in `src-tauri/src/lib.rs` runs on a worker thread (`#[tauri::command(async)]`, otherwise the UI freezes while PDFium renders) and calls `Workspace::render_png`. Every command that touches the workspace (and the other commands for uniformity) is `#[tauri::command(async)]`: a plain command runs on the event-loop thread and would block the whole window while it waits for the workspace lock that a render holds.
 4. `render_png` renders the page with form data and annotations, scales it to the requested width (clamped to `1..=MAX_RENDER_WIDTH_PX`) and returns PNG bytes.
 5. The command wraps the bytes in `tauri::ipc::Response`; the UI receives an `ArrayBuffer`.
 6. `pngBlob` (`src/backend/pngBlob.ts`) turns it into a `Blob` (it also accepts a plain number array, which the WebDriver channel delivers), and the image is shown through a blob URL; the cache keeps the bitmaps it has fetched.
@@ -31,7 +31,7 @@ PDF space is in points (1/72 inch) with the origin at the **bottom left**; CSS s
 
 ## Application windows
 
-The main window loads `index.html`. Printing opens a second window (label `print`, `src/print`, `print.html`, capability `src-tauri/capabilities/print.json`): it renders every page as a 300 dpi bitmap, calls `print_window_ready`, which opens the system print dialog, and `close_print_window` ends it. An open print window is reused for the next print job.
+The main window loads `index.html`. Printing opens a second window (label `print`, `src/print`, `print.html`, capability `src-tauri/capabilities/print.json`): it renders every page as a 300 dpi bitmap, calls `print_window_ready`, which calls `print()` on the print window, and `close_print_window` ends it. On Windows `print()` is `window.print()` (wry, WebView2), so the user sees the Edge/WebView2 print preview, not the Win32 print dialog. Each page sits in a sheet box of 100vw by 100vh (`.print-sheet`) with the image scaled to fit (`object-fit: contain`), so pages of any aspect ratio take exactly one sheet. An open print window is reused for the next print job.
 
 ## Logging
 
