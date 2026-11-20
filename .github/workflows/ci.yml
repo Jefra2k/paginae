@@ -91,6 +91,11 @@ jobs:
         run: |
           node scripts/enable-e2e-capability.mjs
           npm run tauri build -- --no-bundle --target aarch64-apple-darwin -- --features e2e
+      - name: Use the preinstalled Edge WebDriver (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        # The service's own driver download fails on the runner (Windows PowerShell 5.1).
+        run: Add-Content -Path $env:GITHUB_PATH -Value $env:EdgeWebDriver
       - name: Run end-to-end test (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
