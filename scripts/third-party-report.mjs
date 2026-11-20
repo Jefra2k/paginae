@@ -38,7 +38,7 @@ for (const [key, info] of Object.entries(npm)) {
 
 const byName = (a, b) => a[0].localeCompare(b[0], "en") || a[1].localeCompare(b[1], "en", { numeric: true });
 const rows = [...FIXED, ...[...rust.values()].sort(byName), ...node.sort(byName)];
-const esc = (v) => String(v).replace(/|/g, "\|");
+const esc = (v) => String(v).replace(/\|/g, "\\|");
 
 // Development tools: not shipped. Versions come from package.json / Cargo.lock.
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
