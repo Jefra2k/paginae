@@ -105,9 +105,9 @@ jobs:
           PAGINAE_OPEN: ${{ github.workspace }}/e2e/.tmp/fixture.pdf
         run: npm run e2e
       - name: Upload e2e logs
-        if: always() && runner.os == 'macOS'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: e2e-logs-macos
+          name: e2e-logs-${{ runner.os }}
           path: e2e/logs/**
           if-no-files-found: ignore
